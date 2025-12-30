@@ -1,0 +1,671 @@
+INFO 2025-12-29 19:34:36,294 autoreload 309966 133231886712960 Watching for file changes with StatReloader
+WARNING 2025-12-29 19:35:15,037 log 309966 133231792875200 Unauthorized: /api/users/
+WARNING 2025-12-29 19:35:15,039 log 309966 133231792875200 "POST /api/users/ HTTP/1.1" 401 58
+INFO 2025-12-29 19:38:00,687 log 309966 133231792875200 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 19:38:01,359 log 309966 133231792875200 "GET /api/schema/ HTTP/1.1" 200 61841
+WARNING 2025-12-29 19:39:18,623 log 309966 133231782385344 Unauthorized: /api/users/
+WARNING 2025-12-29 19:39:18,625 log 309966 133231782385344 "GET /api/users/ HTTP/1.1" 401 9953
+INFO 2025-12-29 19:39:18,788 log 309966 133231773992640 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 200 3385
+INFO 2025-12-29 19:39:18,789 log 309966 133231563241152 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 200 817
+INFO 2025-12-29 19:39:18,813 log 309966 133231554848448 "GET /static/rest_framework/css/default.css HTTP/1.1" 200 1152
+INFO 2025-12-29 19:39:18,814 log 309966 133231563241152 "GET /static/rest_framework/js/csrf.js HTTP/1.1" 200 1719
+INFO 2025-12-29 19:39:18,816 log 309966 133231538063040 "GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 200 3597
+INFO 2025-12-29 19:39:18,827 log 309966 133231773992640 "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 200 39680
+INFO 2025-12-29 19:39:18,830 log 309966 133231554848448 "GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 200 13632
+INFO 2025-12-29 19:39:18,834 log 309966 133231538063040 "GET /static/rest_framework/js/default.js HTTP/1.1" 200 1268
+INFO 2025-12-29 19:39:18,835 log 309966 133231782385344 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+INFO 2025-12-29 19:39:18,838 log 309966 133231546455744 "GET /static/rest_framework/js/jquery-3.5.1.min.js HTTP/1.1" 200 89476
+INFO 2025-12-29 19:39:18,919 log 309966 133231554848448 "GET /static/rest_framework/img/grid.png HTTP/1.1" 200 1458
+WARNING 2025-12-29 19:39:19,205 log 309966 133231554848448 Not Found: /favicon.ico
+WARNING 2025-12-29 19:39:19,207 log 309966 133231554848448 "GET /favicon.ico HTTP/1.1" 404 3022
+INFO 2025-12-29 19:40:15,425 autoreload 309966 133231886712960 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/config/settings.py changed, reloading.
+INFO 2025-12-29 19:40:47,627 autoreload 310968 131551861317760 Watching for file changes with StatReloader
+INFO 2025-12-29 19:40:50,262 log 310968 131551694157504 "GET /api/users/ HTTP/1.1" 200 18984
+INFO 2025-12-29 19:41:11,325 log 310968 131551685764800 "POST /api/users/ HTTP/1.1" 201 125
+INFO 2025-12-29 19:49:01,979 log 310968 131551694157504 "GET /api/auth/login HTTP/1.1" 301 0
+WARNING 2025-12-29 19:49:02,024 log 310968 131551694157504 Method Not Allowed: /api/auth/login/
+WARNING 2025-12-29 19:49:02,025 log 310968 131551694157504 "GET /api/auth/login/ HTTP/1.1" 405 10482
+INFO 2025-12-29 19:49:20,508 log 310968 131551694157504 "POST /api/auth/login/ HTTP/1.1" 200 11371
+INFO 2025-12-29 19:59:18,787 log 310968 131551694157504 "GET /api/messages HTTP/1.1" 301 0
+WARNING 2025-12-29 19:59:18,815 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 19:59:18,816 log 310968 131551694157504 "GET /api/messages/ HTTP/1.1" 401 9986
+WARNING 2025-12-29 19:59:48,890 log 310968 131551694157504 Method Not Allowed: /api/auth/login/
+WARNING 2025-12-29 19:59:48,892 log 310968 131551694157504 "GET /api/auth/login/ HTTP/1.1" 405 10482
+WARNING 2025-12-29 19:59:51,093 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 19:59:51,096 log 310968 131551694157504 "GET /api/messages/ HTTP/1.1" 401 9986
+WARNING 2025-12-29 19:59:56,066 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 19:59:56,068 log 310968 131551694157504 "GET /api/messages/ HTTP/1.1" 401 9986
+WARNING 2025-12-29 20:00:05,188 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:00:05,193 log 310968 131551694157504 "GET /api/messages/ HTTP/1.1" 401 9986
+WARNING 2025-12-29 20:00:36,464 log 310968 131551694157504 Bad Request: /api/auth/login/
+WARNING 2025-12-29 20:00:36,466 log 310968 131551694157504 "POST /api/auth/login/ HTTP/1.1" 400 10501
+WARNING 2025-12-29 20:01:05,317 log 310968 131551694157504 Bad Request: /api/auth/login/
+WARNING 2025-12-29 20:01:05,319 log 310968 131551694157504 "POST /api/auth/login/ HTTP/1.1" 400 10501
+INFO 2025-12-29 20:01:26,627 log 310968 131551694157504 "POST /api/auth/login/ HTTP/1.1" 200 11364
+INFO 2025-12-29 20:01:45,158 log 310968 131551694157504 "GET /api/messages?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MDQwMjg2LCJpYXQiOjE3NjcwMzg0ODYsImp0aSI6IjIzNGI1YzNlYzY0MDQ0ODZhMzQxYWIxNjEwNDg5Nzg2IiwidXNlcl9pZCI6IjAyMmYxMjkyLWJmODItNGVkYS1iOTJjLTViYmQyMGE1NTkzNyJ9.69ybGtpcL6wx9L-eTEZ6PnKoSA0QOrvJr9eW-TuoNpk HTTP/1.1" 301 0
+WARNING 2025-12-29 20:01:45,186 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:01:45,187 log 310968 131551694157504 "GET /api/messages/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MDQwMjg2LCJpYXQiOjE3NjcwMzg0ODYsImp0aSI6IjIzNGI1YzNlYzY0MDQ0ODZhMzQxYWIxNjEwNDg5Nzg2IiwidXNlcl9pZCI6IjAyMmYxMjkyLWJmODItNGVkYS1iOTJjLTViYmQyMGE1NTkzNyJ9.69ybGtpcL6wx9L-eTEZ6PnKoSA0QOrvJr9eW-TuoNpk HTTP/1.1" 401 11130
+INFO 2025-12-29 20:04:24,340 log 310968 131551685764800 "GET /api/messages/ HTTP/1.1" 200 20386
+WARNING 2025-12-29 20:05:38,798 log 310968 131551694157504 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:05:38,800 log 310968 131551694157504 "GET /api/messages/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3MDQwMjg2LCJpYXQiOjE3NjcwMzg0ODYsImp0aSI6IjIzNGI1YzNlYzY0MDQ0ODZhMzQxYWIxNjEwNDg5Nzg2IiwidXNlcl9pZCI6IjAyMmYxMjkyLWJmODItNGVkYS1iOTJjLTViYmQyMGE1NTkzNyJ9.69ybGtpcL6wx9L-eTEZ6PnKoSA0QOrvJr9eW-TuoNpk HTTP/1.1" 401 11130
+INFO 2025-12-29 20:11:19,703 autoreload 310968 131551861317760 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 20:11:20,509 autoreload 313290 137875962572928 Watching for file changes with StatReloader
+INFO 2025-12-29 20:14:36,116 log 313290 137875868870336 "GET /api/messages/?group_id=62ce239371b142d8a06b73d9ea7fc31e HTTP/1.1" 200 20428
+WARNING 2025-12-29 20:16:41,793 log 313290 137875868870336 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:16:41,795 log 313290 137875868870336 "GET /api/messages/??message_type=private HTTP/1.1" 401 58
+INFO 2025-12-29 20:22:48,344 log 313290 137875868870336 "GET /api/messages/ HTTP/1.1" 200 20416
+INFO 2025-12-29 20:23:18,342 log 313290 137875846854336 "GET /api/messages/?message_type=private HTTP/1.1" 200 22534
+INFO 2025-12-29 20:23:34,873 log 313290 137875846854336 "GET /api/messages/?message_type=group HTTP/1.1" 200 18151
+INFO 2025-12-29 20:26:54,237 log 313290 137875846854336 "GET /api/messages/?group=62ce239371b142d8a06b73d9ea7fc31e HTTP/1.1" 200 18171
+INFO 2025-12-29 20:27:13,924 log 313290 137875868870336 "GET /api/messages/ HTTP/1.1" 200 20416
+WARNING 2025-12-29 20:38:01,614 log 313290 137875868870336 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:38:01,616 log 313290 137875868870336 "GET /api/messages/ HTTP/1.1" 401 172
+WARNING 2025-12-29 20:38:53,484 log 313290 137875846854336 Unauthorized: /api/messages/
+WARNING 2025-12-29 20:38:53,487 log 313290 137875846854336 "GET /api/messages/ HTTP/1.1" 401 172
+WARNING 2025-12-29 20:39:47,982 log 313290 137875868870336 Not Found: /api/company/list/
+WARNING 2025-12-29 20:39:47,983 log 313290 137875868870336 "GET /api/company/list/ HTTP/1.1" 404 12600
+INFO 2025-12-29 20:39:55,218 log 313290 137875630847680 "POST /api/auth/login/ HTTP/1.1" 200 11364
+INFO 2025-12-29 20:40:20,890 log 313290 137875622454976 "GET /api/messages/ HTTP/1.1" 200 20416
+WARNING 2025-12-29 20:41:14,177 log 313290 137875846854336 Unauthorized: /api/users/
+WARNING 2025-12-29 20:41:14,179 log 313290 137875846854336 "GET /api/users/ HTTP/1.1" 401 172
+WARNING 2025-12-29 20:41:14,998 log 313290 137875614062272 Unauthorized: /api/groups/
+WARNING 2025-12-29 20:41:15,000 log 313290 137875614062272 "GET /api/groups/ HTTP/1.1" 401 172
+WARNING 2025-12-29 20:41:15,719 log 313290 137875605669568 Unauthorized: /api/groups/
+WARNING 2025-12-29 20:41:15,720 log 313290 137875605669568 "GET /api/groups/ HTTP/1.1" 401 172
+WARNING 2025-12-29 20:41:24,009 log 313290 137875868870336 Unauthorized: /api/users/
+WARNING 2025-12-29 20:41:24,011 log 313290 137875868870336 "GET /api/users/ HTTP/1.1" 401 172
+INFO 2025-12-29 21:09:46,632 log 313290 137875630847680 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+WARNING 2025-12-29 21:10:51,454 log 313290 137875868870336 Unauthorized: /api/messages/
+WARNING 2025-12-29 21:10:51,455 log 313290 137875868870336 "GET /api/messages/?message_type=private&recipient=10abac26-f4f5-40fb-951f-c4b9f2bac4e2 HTTP/1.1" 401 172
+INFO 2025-12-29 21:11:20,027 log 313290 137875630847680 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-29 21:11:39,302 log 313290 137875605669568 "POST /api/auth/login/ HTTP/1.1" 200 11364
+INFO 2025-12-29 21:11:58,016 log 313290 137875614062272 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-29 21:12:08,843 log 313290 137875846854336 "GET /api/messages/?message_type=private&recipient=10abac26-f4f5-40fb-951f-c4b9f2bac4e2 HTTP/1.1" 200 22581
+INFO 2025-12-29 21:13:03,458 log 313290 137875630847680 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-29 21:44:09,516 autoreload 313290 137875962572928 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:44:10,495 autoreload 321092 128493760970880 Watching for file changes with StatReloader
+INFO 2025-12-29 21:44:29,548 autoreload 321092 128493760970880 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:44:30,325 autoreload 321110 134296922857600 Watching for file changes with StatReloader
+INFO 2025-12-29 21:44:36,450 log 321110 134296829421248 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:44:37,284 log 321110 134296829421248 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 21:44:51,156 autoreload 321110 134296922857600 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:44:52,072 autoreload 321169 133462158921856 Watching for file changes with StatReloader
+INFO 2025-12-29 21:44:54,388 log 321169 133462065407680 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:44:54,670 log 321169 133462065407680 "GET /api/schema/ HTTP/1.1" 200 62009
+INFO 2025-12-29 21:45:17,194 log 321169 133462065407680 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:45:17,466 log 321169 133462065407680 "GET /api/schema/ HTTP/1.1" 200 62009
+INFO 2025-12-29 21:45:43,488 autoreload 321169 133462158921856 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:45:44,240 autoreload 321232 137912847364224 Watching for file changes with StatReloader
+INFO 2025-12-29 21:45:48,839 autoreload 321232 137912847364224 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:45:49,884 autoreload 321245 140263662174336 Watching for file changes with StatReloader
+INFO 2025-12-29 21:45:52,440 log 321245 140263498446528 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:45:52,970 log 321245 140263498446528 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 21:47:40,604 autoreload 321343 127138284146816 Watching for file changes with StatReloader
+INFO 2025-12-29 21:47:44,005 log 321343 127138190583488 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:47:44,563 log 321343 127138190583488 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 21:53:19,868 autoreload 321343 127138284146816 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 21:53:20,611 autoreload 321670 133108583899264 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:11,036 autoreload 321670 133108583899264 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:11,841 autoreload 321692 128315419836544 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:16,376 autoreload 321692 128315419836544 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:17,102 autoreload 321701 134039751282816 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:18,591 autoreload 321701 134039751282816 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:19,388 autoreload 321706 124721665958016 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:21,057 autoreload 321706 124721665958016 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:21,936 autoreload 321711 140002396024960 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:24,565 autoreload 321711 140002396024960 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:25,521 autoreload 321724 124963687473280 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:34,197 autoreload 321724 124963687473280 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:35,129 autoreload 321762 128838796042368 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:36,356 autoreload 321762 128838796042368 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:37,388 autoreload 321775 132963030278272 Watching for file changes with StatReloader
+INFO 2025-12-29 21:54:38,835 autoreload 321775 132963030278272 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:54:39,485 autoreload 321779 131940154130560 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:02,906 autoreload 321779 131940154130560 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:55:03,637 autoreload 321801 138517234028672 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:06,947 autoreload 321801 138517234028672 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:55:07,705 autoreload 321806 137297466491008 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:09,911 autoreload 321806 137297466491008 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:55:10,594 autoreload 321818 137295850852480 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:19,128 autoreload 321818 137295850852480 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:55:19,853 autoreload 321838 126128447852672 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:51,310 autoreload 321838 126128447852672 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:55:52,109 autoreload 321879 130963104936064 Watching for file changes with StatReloader
+INFO 2025-12-29 21:55:54,197 log 321879 130963012052672 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:55:54,861 log 321879 130963012052672 "GET /api/schema/ HTTP/1.1" 200 62905
+INFO 2025-12-29 21:56:14,164 autoreload 321879 130963104936064 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:14,898 autoreload 321916 137159713878144 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:19,169 autoreload 321916 137159713878144 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:19,945 autoreload 321929 133204213497984 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:21,112 autoreload 321929 133204213497984 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:21,857 autoreload 321934 132124843819136 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:27,234 autoreload 321934 132124843819136 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:27,932 autoreload 322005 140554322055296 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:30,706 log 322005 140554228721344 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:56:30,912 log 322005 140554228721344 "GET /api/schema/ HTTP/1.1" 200 63007
+INFO 2025-12-29 21:56:40,115 autoreload 322005 140554322055296 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:40,854 autoreload 322014 136259106087040 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:45,149 autoreload 322014 136259106087040 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:45,993 autoreload 322029 125773897883776 Watching for file changes with StatReloader
+INFO 2025-12-29 21:56:47,170 autoreload 322029 125773897883776 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:56:48,061 autoreload 322034 131131488632960 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:04,951 autoreload 322034 131131488632960 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:05,727 autoreload 322077 140340494983296 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:07,985 autoreload 322077 140340494983296 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:08,804 autoreload 322084 127710433210496 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:13,116 autoreload 322084 127710433210496 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:13,918 autoreload 322127 127448610676864 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:22,414 autoreload 322127 127448610676864 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:23,228 autoreload 322140 130188508487808 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:24,398 autoreload 322140 130188508487808 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:25,207 autoreload 322145 127641027584128 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:26,643 autoreload 322145 127641027584128 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:27,297 autoreload 322149 130757117214848 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:29,493 autoreload 322149 130757117214848 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:30,403 autoreload 322162 138914074062976 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:46,238 autoreload 322162 138914074062976 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:57:47,090 autoreload 322218 125545036849280 Watching for file changes with StatReloader
+INFO 2025-12-29 21:57:59,312 log 322218 125544943314624 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:57:59,604 log 322218 125544943314624 "GET /api/schema/ HTTP/1.1" 200 62905
+INFO 2025-12-29 21:58:10,650 autoreload 322218 125545036849280 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:58:11,491 autoreload 322260 126766474514560 Watching for file changes with StatReloader
+INFO 2025-12-29 21:59:17,481 autoreload 322260 126766474514560 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 21:59:18,244 autoreload 322329 133392800776320 Watching for file changes with StatReloader
+INFO 2025-12-29 21:59:24,702 log 322329 133392707348160 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 21:59:24,954 log 322329 133392707348160 "GET /api/schema/ HTTP/1.1" 200 63007
+INFO 2025-12-29 22:00:32,045 autoreload 322329 133392800776320 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:33,031 autoreload 322424 137757448753280 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:34,210 autoreload 322424 137757448753280 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:34,973 autoreload 322435 133745670369408 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:38,216 autoreload 322435 133745670369408 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:39,004 autoreload 322442 124920141979776 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:41,224 autoreload 322442 124920141979776 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:41,946 autoreload 322478 140635602591872 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:47,316 autoreload 322478 140635602591872 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:48,121 autoreload 322490 126813553275008 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:49,305 autoreload 322490 126813553275008 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:50,135 autoreload 322495 136444159901824 Watching for file changes with StatReloader
+INFO 2025-12-29 22:00:57,567 autoreload 322495 136444159901824 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:00:58,376 autoreload 322508 129730206797952 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:04,783 autoreload 322508 129730206797952 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:05,561 autoreload 322516 139311655706752 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:11,960 autoreload 322516 139311655706752 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:12,725 autoreload 322532 138905668829312 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:13,959 autoreload 322532 138905668829312 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:14,637 autoreload 322537 128239831797888 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:17,912 autoreload 322537 128239831797888 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:18,659 autoreload 322544 140191214321792 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:22,973 autoreload 322544 140191214321792 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:23,695 autoreload 322556 128619242754176 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:29,117 autoreload 322556 128619242754176 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:29,876 autoreload 322593 127876991684736 Watching for file changes with StatReloader
+INFO 2025-12-29 22:01:46,810 autoreload 322593 127876991684736 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:01:47,544 autoreload 322613 132406246695040 Watching for file changes with StatReloader
+INFO 2025-12-29 22:02:02,556 log 322613 132406153569984 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:02:02,740 log 322613 132406153569984 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:02:23,968 autoreload 322613 132406246695040 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:02:24,716 autoreload 322698 125358822756480 Watching for file changes with StatReloader
+INFO 2025-12-29 22:02:28,234 autoreload 322698 125358822756480 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:02:28,992 autoreload 322704 126879918526592 Watching for file changes with StatReloader
+INFO 2025-12-29 22:02:31,443 autoreload 322704 126879918526592 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:02:32,246 autoreload 322710 132488589602944 Watching for file changes with StatReloader
+INFO 2025-12-29 22:02:36,753 autoreload 322710 132488589602944 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:02:37,605 autoreload 322748 138338597224576 Watching for file changes with StatReloader
+INFO 2025-12-29 22:02:40,324 log 322748 138338503747264 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:02:40,554 log 322748 138338503747264 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:05:31,578 autoreload 322748 138338597224576 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:05:32,387 autoreload 322905 138212612264064 Watching for file changes with StatReloader
+INFO 2025-12-29 22:05:33,585 autoreload 322905 138212612264064 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:05:34,302 autoreload 322910 127305282187392 Watching for file changes with StatReloader
+INFO 2025-12-29 22:05:38,930 autoreload 322910 127305282187392 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:05:39,746 autoreload 322917 135097919901824 Watching for file changes with StatReloader
+INFO 2025-12-29 22:05:42,916 log 322917 135097826141888 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:05:43,354 log 322917 135097826141888 "GET /api/schema/ HTTP/1.1" 200 62943
+INFO 2025-12-29 22:05:55,087 autoreload 322917 135097919901824 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:05:55,913 autoreload 322963 135527969894528 Watching for file changes with StatReloader
+INFO 2025-12-29 22:05:57,131 autoreload 322963 135527969894528 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:05:57,930 autoreload 322967 140519039787136 Watching for file changes with StatReloader
+INFO 2025-12-29 22:05:59,415 autoreload 322967 140519039787136 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:06:00,168 autoreload 322976 138869492433024 Watching for file changes with StatReloader
+INFO 2025-12-29 22:06:01,378 autoreload 322976 138869492433024 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:06:02,056 autoreload 322982 139439911895168 Watching for file changes with StatReloader
+INFO 2025-12-29 22:06:11,191 log 322982 139439818925760 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:06:11,448 log 322982 139439818925760 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:06:46,660 autoreload 322982 139439911895168 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:06:47,444 autoreload 323043 134574729556096 Watching for file changes with StatReloader
+INFO 2025-12-29 22:07:02,993 log 323043 134574636000960 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:07:03,215 log 323043 134574636000960 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:08:10,607 autoreload 323043 134574729556096 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:08:11,350 autoreload 323173 128220041220224 Watching for file changes with StatReloader
+INFO 2025-12-29 22:08:13,076 autoreload 323173 128220041220224 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:08:13,776 autoreload 323186 124317583265920 Watching for file changes with StatReloader
+INFO 2025-12-29 22:08:27,795 autoreload 323186 124317583265920 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:08:28,465 autoreload 323229 132187526316160 Watching for file changes with StatReloader
+INFO 2025-12-29 22:08:30,923 log 323229 132187433199296 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:08:31,143 log 323229 132187433199296 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:10:21,746 autoreload 323229 132187526316160 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:22,464 autoreload 323415 138546157768832 Watching for file changes with StatReloader
+INFO 2025-12-29 22:10:25,739 autoreload 323415 138546157768832 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:26,496 autoreload 323421 125889522729088 Watching for file changes with StatReloader
+INFO 2025-12-29 22:10:31,069 autoreload 323421 125889522729088 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:31,800 autoreload 323428 133802603819136 Watching for file changes with StatReloader
+INFO 2025-12-29 22:10:38,179 autoreload 323428 133802603819136 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:38,944 autoreload 323440 139989185278080 Watching for file changes with StatReloader
+INFO 2025-12-29 22:10:46,361 autoreload 323440 139989185278080 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:47,146 autoreload 323481 124253516435584 Watching for file changes with StatReloader
+INFO 2025-12-29 22:10:49,366 autoreload 323481 124253516435584 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:10:50,070 autoreload 323485 139246668570752 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:09,321 autoreload 323485 139246668570752 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:11:10,130 autoreload 323522 125050254921856 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:19,053 autoreload 323522 125050254921856 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:19,815 autoreload 323541 123991980806272 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:23,456 autoreload 323541 123991980806272 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:24,383 autoreload 323550 133679298957440 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:25,847 autoreload 323550 133679298957440 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:26,540 autoreload 323553 127255290855552 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:27,693 autoreload 323553 127255290855552 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:28,625 autoreload 323590 135654675030144 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:29,800 autoreload 323590 135654675030144 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:30,549 autoreload 323592 137593729474688 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:43,205 autoreload 323592 137593729474688 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:43,937 autoreload 323614 132436691144832 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:51,382 autoreload 323614 132436691144832 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:52,139 autoreload 323620 140370993197184 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:54,371 autoreload 323620 140370993197184 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:55,113 autoreload 323625 139266870788224 Watching for file changes with StatReloader
+INFO 2025-12-29 22:11:57,336 autoreload 323625 139266870788224 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:11:58,124 autoreload 323635 137988137586816 Watching for file changes with StatReloader
+INFO 2025-12-29 22:12:00,386 autoreload 323635 137988137586816 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:12:01,300 autoreload 323639 131816421970048 Watching for file changes with StatReloader
+INFO 2025-12-29 22:12:54,568 autoreload 323639 131816421970048 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:12:55,282 autoreload 323724 133796930445440 Watching for file changes with StatReloader
+INFO 2025-12-29 22:12:58,553 autoreload 323724 133796930445440 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:12:59,290 autoreload 323734 128785579720832 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:02,580 autoreload 323734 128785579720832 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:13:03,328 autoreload 323769 127658547310720 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:06,591 autoreload 323769 127658547310720 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:13:07,334 autoreload 323779 124834722353280 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:10,603 autoreload 323779 124834722353280 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:13:11,378 autoreload 323785 130537168662656 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:13,590 autoreload 323785 130537168662656 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:13:14,540 autoreload 323790 125273342124160 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:15,809 log 323790 125273249932992 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:13:16,296 log 323790 125273249932992 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:13:42,518 autoreload 323790 125273342124160 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/accounts/views.py changed, reloading.
+INFO 2025-12-29 22:13:43,379 autoreload 323860 129745793425536 Watching for file changes with StatReloader
+INFO 2025-12-29 22:13:44,461 log 323860 129745701299904 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:13:44,676 log 323860 129745701299904 "GET /api/schema/ HTTP/1.1" 200 62946
+INFO 2025-12-29 22:14:10,940 autoreload 323860 129745793425536 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:11,799 autoreload 323971 133404338249856 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:14,356 autoreload 323971 133404338249856 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:15,190 autoreload 323977 140173727113344 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:16,789 autoreload 323977 140173727113344 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:17,556 autoreload 323983 133121577525376 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:22,864 autoreload 323983 133121577525376 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:23,699 autoreload 323990 128743101567104 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:24,862 autoreload 323990 128743101567104 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:25,524 autoreload 324000 126023696547968 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:26,691 autoreload 324000 126023696547968 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:27,508 autoreload 324005 133676494000256 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:30,060 autoreload 324005 133676494000256 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:30,779 autoreload 324014 125719664603264 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:33,253 autoreload 324014 125719664603264 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:34,231 autoreload 324021 130137630539904 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:36,707 autoreload 324021 130137630539904 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:37,429 autoreload 324035 133549633740928 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:40,986 autoreload 324035 133549633740928 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:41,773 autoreload 324041 139214260150400 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:43,257 autoreload 324041 139214260150400 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:43,938 autoreload 324046 137267804319872 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:46,406 autoreload 324046 137267804319872 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:47,150 autoreload 324057 134840072913024 Watching for file changes with StatReloader
+INFO 2025-12-29 22:14:49,658 autoreload 324057 134840072913024 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:14:50,401 autoreload 324064 137831079927936 Watching for file changes with StatReloader
+INFO 2025-12-29 22:15:06,492 autoreload 324064 137831079927936 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:15:07,211 autoreload 324081 124137357103232 Watching for file changes with StatReloader
+INFO 2025-12-29 22:15:10,454 autoreload 324081 124137357103232 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:15:11,157 autoreload 324088 123876632084608 Watching for file changes with StatReloader
+INFO 2025-12-29 22:15:12,413 autoreload 324088 123876632084608 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:15:13,228 autoreload 324094 136992133890176 Watching for file changes with StatReloader
+INFO 2025-12-29 22:15:21,894 log 324094 136992040937152 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:15:22,106 log 324094 136992040937152 "GET /api/schema/ HTTP/1.1" 200 62955
+INFO 2025-12-29 22:16:15,135 autoreload 324094 136992133890176 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:15,578 autoreload 324351 127067897020544 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:16,813 autoreload 324351 127067897020544 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:17,234 autoreload 324357 130277639438464 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:23,632 autoreload 324357 130277639438464 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:24,121 autoreload 324363 126271349301376 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:25,332 autoreload 324363 126271349301376 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:25,769 autoreload 324373 125548646891648 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:33,153 autoreload 324373 125548646891648 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:33,585 autoreload 324409 136710961500288 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:45,162 autoreload 324409 136710961500288 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:16:45,605 autoreload 324422 136150482305152 Watching for file changes with StatReloader
+INFO 2025-12-29 22:16:50,871 log 324422 136150388827840 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:16:50,971 log 324422 136150388827840 "GET /api/schema/ HTTP/1.1" 200 62991
+INFO 2025-12-29 22:26:25,404 log 324422 136150388827840 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:26:25,513 log 324422 136150388827840 "GET /api/schema/ HTTP/1.1" 200 62991
+INFO 2025-12-29 22:26:46,652 autoreload 324422 136150482305152 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/config/settings.py changed, reloading.
+INFO 2025-12-29 22:27:23,822 autoreload 325077 139136732336256 Watching for file changes with StatReloader
+INFO 2025-12-29 22:27:24,320 log 325077 139136639952576 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:27:24,443 log 325077 139136639952576 "GET /api/schema/ HTTP/1.1" 200 63108
+INFO 2025-12-29 22:29:05,879 autoreload 325077 139136732336256 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:06,329 autoreload 325198 135927345168512 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:09,597 autoreload 325198 135927345168512 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:10,023 autoreload 325203 133607823310976 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:16,295 autoreload 325203 133607823310976 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:16,770 autoreload 325216 135866125754496 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:18,909 autoreload 325216 135866125754496 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:19,312 autoreload 325222 134596539347072 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:22,435 autoreload 325222 134596539347072 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:22,855 autoreload 325228 129534870241408 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:43,584 autoreload 325228 129534870241408 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:44,039 autoreload 325274 138042987405440 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:45,278 autoreload 325274 138042987405440 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:45,726 autoreload 325279 137917348561024 Watching for file changes with StatReloader
+INFO 2025-12-29 22:29:47,980 autoreload 325279 137917348561024 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:29:48,409 autoreload 325283 134622669738112 Watching for file changes with StatReloader
+INFO 2025-12-29 22:30:11,359 log 325283 134622575847104 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:30:11,450 log 325283 134622575847104 "GET /api/schema/ HTTP/1.1" 200 63002
+INFO 2025-12-29 22:30:43,361 autoreload 325283 134622669738112 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:30:43,867 autoreload 325361 123391954669696 Watching for file changes with StatReloader
+INFO 2025-12-29 22:30:45,126 autoreload 325361 123391954669696 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:30:45,571 autoreload 325367 124648940142720 Watching for file changes with StatReloader
+INFO 2025-12-29 22:30:49,011 log 325367 124648847042240 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:30:49,104 log 325367 124648847042240 "GET /api/schema/ HTTP/1.1" 200 63003
+INFO 2025-12-29 22:31:21,784 autoreload 325367 124648940142720 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:31:22,229 autoreload 325417 131873714835584 Watching for file changes with StatReloader
+INFO 2025-12-29 22:38:22,165 autoreload 325417 131873714835584 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:38:22,604 autoreload 326053 139616460251264 Watching for file changes with StatReloader
+INFO 2025-12-29 22:38:32,069 log 326053 139616366618304 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:38:32,275 log 326053 139616366618304 "GET /api/schema/ HTTP/1.1" 200 60658
+INFO 2025-12-29 22:39:58,167 autoreload 326053 139616460251264 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-29 22:39:58,705 autoreload 326177 125307360227456 Watching for file changes with StatReloader
+INFO 2025-12-29 22:40:01,272 log 326177 125307266787008 "GET /api/docs/swagger/ HTTP/1.1" 200 4658
+INFO 2025-12-29 22:40:01,485 log 326177 125307266787008 "GET /api/schema/ HTTP/1.1" 200 62760
+INFO 2025-12-30 00:26:58,914 autoreload 326177 125307360227456 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:26:59,974 autoreload 341650 126350366396544 Watching for file changes with StatReloader
+INFO 2025-12-30 00:27:01,450 autoreload 341650 126350366396544 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:27:02,211 autoreload 341670 132978202144896 Watching for file changes with StatReloader
+INFO 2025-12-30 00:29:59,620 autoreload 341670 132978202144896 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:30:00,477 autoreload 342531 134882529312896 Watching for file changes with StatReloader
+INFO 2025-12-30 00:30:03,184 autoreload 342531 134882529312896 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:30:04,161 autoreload 342554 131117301497984 Watching for file changes with StatReloader
+INFO 2025-12-30 00:30:09,921 autoreload 342554 131117301497984 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:30:10,706 autoreload 342572 135660216795264 Watching for file changes with StatReloader
+INFO 2025-12-30 00:31:32,294 autoreload 342572 135660216795264 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:31:33,292 autoreload 342684 133329019650176 Watching for file changes with StatReloader
+INFO 2025-12-30 00:31:45,438 autoreload 342684 133329019650176 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:31:46,305 autoreload 342708 128928938770560 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:10,881 autoreload 342708 128928938770560 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:11,761 autoreload 342726 136274148679808 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:16,401 autoreload 342726 136274148679808 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:17,212 autoreload 342740 131721686917248 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:22,558 autoreload 342740 131721686917248 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:23,430 autoreload 342756 138139187421312 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:33,365 autoreload 342756 138139187421312 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:34,355 autoreload 342794 123832361361536 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:37,920 autoreload 342794 123832361361536 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:38,803 autoreload 342807 133370401316992 Watching for file changes with StatReloader
+INFO 2025-12-30 00:32:40,409 autoreload 342807 133370401316992 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:32:41,257 autoreload 342813 134714358308992 Watching for file changes with StatReloader
+INFO 2025-12-30 00:33:12,324 autoreload 342813 134714358308992 /home/ernest-kyei/Documents/distro-messaging/distributed-messaging/messaging/views.py changed, reloading.
+INFO 2025-12-30 00:33:13,094 autoreload 342872 123796179513472 Watching for file changes with StatReloader
+WARNING 2025-12-30 00:44:51,900 log 342872 123796086318784 Not Found: /health
+WARNING 2025-12-30 00:44:51,905 log 342872 123796086318784 "GET /health HTTP/1.1" 404 3007
+WARNING 2025-12-30 00:45:09,746 log 342872 123796086318784 Not Found: /health
+WARNING 2025-12-30 00:45:09,748 log 342872 123796086318784 "GET /health HTTP/1.1" 404 3007
+INFO 2025-12-30 00:46:44,115 autoreload 358057 130309682393216 Watching for file changes with StatReloader
+INFO 2025-12-30 00:49:20,832 autoreload 358707 134895428849792 Watching for file changes with StatReloader
+INFO 2025-12-30 00:49:30,761 autoreload 358763 125232798863488 Watching for file changes with StatReloader
+INFO 2025-12-30 00:52:19,812 autoreload 359687 125329859944576 Watching for file changes with StatReloader
+WARNING 2025-12-30 00:56:32,458 log 359687 125329695831744 Method Not Allowed: /api/auth/login/
+WARNING 2025-12-30 00:56:32,459 log 359687 125329695831744 "GET /api/auth/login/ HTTP/1.1" 405 10482
+INFO 2025-12-30 00:56:32,503 log 359687 125329662260928 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,504 log 359687 125329670653632 "GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 200 13632
+INFO 2025-12-30 00:56:32,506 log 359687 125329662260928 "GET /static/rest_framework/css/default.css HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,507 log 359687 125329679046336 "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 200 39680
+INFO 2025-12-30 00:56:32,507 log 359687 125329653868224 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,508 log 359687 125329695831744 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+INFO 2025-12-30 00:56:32,510 log 359687 125329687439040 "GET /static/rest_framework/js/jquery-3.5.1.min.js HTTP/1.1" 200 89476
+INFO 2025-12-30 00:56:32,513 log 359687 125329653868224 "GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,515 log 359687 125329679046336 "GET /static/rest_framework/js/default.js HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,516 log 359687 125329670653632 "GET /static/rest_framework/js/csrf.js HTTP/1.1" 304 0
+INFO 2025-12-30 00:56:32,571 log 359687 125329670653632 "GET /static/rest_framework/img/grid.png HTTP/1.1" 304 0
+WARNING 2025-12-30 00:56:32,630 log 359687 125329670653632 Not Found: /favicon.ico
+WARNING 2025-12-30 00:56:32,631 log 359687 125329670653632 "GET /favicon.ico HTTP/1.1" 404 3022
+INFO 2025-12-30 00:56:37,784 log 359687 125329670653632 "POST /api/auth/login/ HTTP/1.1" 200 11371
+WARNING 2025-12-30 01:04:29,618 log 359687 125329293178560 Bad Request: /api/messages/
+WARNING 2025-12-30 01:04:29,620 log 359687 125329293178560 "POST /api/messages/ HTTP/1.1" 400 66
+INFO 2025-12-30 01:05:40,363 log 359687 125329653868224 "POST /api/auth/login/ HTTP/1.1" 200 11383
+INFO 2025-12-30 01:06:10,444 log 359687 125329679046336 "POST /api/messages/ HTTP/1.1" 201 379
+INFO 2025-12-30 01:06:28,160 log 359687 125329679046336 "POST /api/messages/ HTTP/1.1" 201 379
+INFO 2025-12-30 01:07:01,328 log 359687 125329679046336 "POST /api/messages/ HTTP/1.1" 201 379
+INFO 2025-12-30 01:21:45,185 log 359687 125329653868224 "POST /api/messages/ HTTP/1.1" 201 379
+INFO 2025-12-30 01:42:59,150 log 359687 125329653868224 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:43:08,381 log 359687 125329653868224 "POST /api/auth/login/ HTTP/1.1" 200 729
+INFO 2025-12-30 01:43:08,447 log 359687 125329653868224 "OPTIONS /api/groups/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:43:08,482 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:08,530 log 359687 125329653868224 "OPTIONS /api/users/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:43:08,591 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:08,898 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:08,934 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:09,267 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:09,307 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:09,605 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:09,641 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:09,917 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:09,949 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:10,224 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:10,256 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:10,534 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:10,568 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:10,843 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:10,877 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:11,167 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:11,199 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:11,479 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:11,509 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:11,804 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:11,842 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:12,118 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:12,150 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:12,439 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:12,474 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:12,762 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:12,801 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:13,076 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:13,108 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:13,388 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:13,421 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:13,703 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:13,733 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:14,036 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:14,069 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:14,353 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:14,385 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:14,666 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:14,699 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:14,983 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:15,015 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:15,294 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:15,328 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:15,619 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:15,652 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:15,945 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:15,977 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:16,281 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:16,318 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:16,608 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:16,647 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:16,945 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:16,978 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:17,149 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:17,206 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:17,408 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:17,423 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:17,602 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:17,619 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:17,926 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:17,962 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:18,257 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:18,291 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:18,563 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:18,595 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:18,863 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:18,896 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:19,169 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:19,200 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:19,497 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:19,530 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:19,807 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:19,840 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:20,130 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:20,164 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:20,467 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:20,504 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:20,817 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:20,853 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:21,136 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:21,170 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:21,475 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:21,513 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:21,814 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:21,915 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:22,056 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:22,076 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:22,257 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:22,272 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:22,567 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:22,601 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:22,888 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:22,926 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:23,221 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:23,254 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:23,540 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:23,573 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:23,853 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:23,889 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:24,194 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:24,234 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:24,522 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:24,553 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:24,856 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:24,894 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:25,205 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:25,238 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:25,547 log 359687 125329653868224 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:25,582 log 359687 125329653868224 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:25,947 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:26,299 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:26,329 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:26,646 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:26,680 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:27,092 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:27,127 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:27,429 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:27,462 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:27,777 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:27,824 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:28,129 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:28,169 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:28,445 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:28,477 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:28,797 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:28,832 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:29,114 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:29,143 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:43:29,466 log 359687 125329679046336 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:43:29,501 log 359687 125329679046336 "GET /api/users/ HTTP/1.1" 200 1741
+WARNING 2025-12-30 01:44:28,899 log 359687 125329653868224 Unauthorized: /api/messages/
+WARNING 2025-12-30 01:44:28,901 log 359687 125329653868224 "POST /api/messages/ HTTP/1.1" 401 172
+INFO 2025-12-30 01:46:29,022 log 359687 125329653868224 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:46:40,040 log 359687 125329653868224 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:47:00,579 log 359687 125329653868224 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:47:01,550 log 359687 125329653868224 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:47:46,679 autoreload 375393 139871146758272 Watching for file changes with StatReloader
+INFO 2025-12-30 01:48:08,672 log 375393 139870978700992 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:01,052 log 375393 139870978700992 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:02,449 log 375393 139870978700992 "POST /api/auth/login/ HTTP/1.1" 200 729
+INFO 2025-12-30 01:49:02,590 log 375393 139870978700992 "OPTIONS /api/groups/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:02,674 log 375393 139870978700992 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:49:02,731 log 375393 139870978700992 "OPTIONS /api/users/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:02,793 log 375393 139870978700992 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:49:09,208 log 375393 139870978700992 "OPTIONS /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:09,283 log 375393 139870978700992 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18164
+INFO 2025-12-30 01:49:09,424 log 375393 139870978700992 "OPTIONS /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:09,436 log 375393 139870978700992 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 01:49:14,764 log 375393 139870978700992 "OPTIONS /api/messages/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:49:14,826 log 375393 139870978700992 "POST /api/messages/ HTTP/1.1" 201 368
+INFO 2025-12-30 01:49:29,493 log 375393 139870978700992 "POST /api/messages/ HTTP/1.1" 201 368
+INFO 2025-12-30 01:49:46,104 log 375393 139870957729472 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 01:49:46,147 log 375393 139870957729472 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:50:07,034 log 375393 139870978700992 "POST /api/auth/login/ HTTP/1.1" 200 719
+INFO 2025-12-30 01:50:07,180 log 375393 139870978700992 "GET /api/groups/ HTTP/1.1" 200 1375
+INFO 2025-12-30 01:50:07,199 log 375393 139870978700992 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 01:50:10,542 log 375393 139870978700992 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18181
+INFO 2025-12-30 01:50:10,628 log 375393 139870978700992 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 01:50:12,263 log 375393 139870957729472 "OPTIONS /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 0
+INFO 2025-12-30 01:50:12,347 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18181
+INFO 2025-12-30 01:50:12,515 log 375393 139870957729472 "OPTIONS /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:50:12,554 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 01:50:17,411 log 375393 139870978700992 "POST /api/messages/ HTTP/1.1" 201 347
+INFO 2025-12-30 01:50:25,308 log 375393 139870957729472 "OPTIONS /api/messages/ HTTP/1.1" 200 0
+INFO 2025-12-30 01:50:25,358 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 201 372
+INFO 2025-12-30 01:50:31,809 log 375393 139870957729472 "OPTIONS /api/messages/?recipient=022f1292-bf82-4eda-b92c-5bbd20a55937&message_type=private HTTP/1.1" 200 0
+INFO 2025-12-30 01:50:31,879 log 375393 139870957729472 "GET /api/messages/?recipient=022f1292-bf82-4eda-b92c-5bbd20a55937&message_type=private HTTP/1.1" 200 22551
+WARNING 2025-12-30 01:50:36,829 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:50:36,830 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+INFO 2025-12-30 01:50:44,182 log 375393 139870978700992 "OPTIONS /api/messages/?recipient=10abac26-f4f5-40fb-951f-c4b9f2bac4e2&message_type=private HTTP/1.1" 200 0
+INFO 2025-12-30 01:50:44,246 log 375393 139870978700992 "GET /api/messages/?recipient=10abac26-f4f5-40fb-951f-c4b9f2bac4e2&message_type=private HTTP/1.1" 200 22551
+WARNING 2025-12-30 01:50:47,587 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:50:47,589 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+WARNING 2025-12-30 01:50:51,460 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:50:51,462 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+WARNING 2025-12-30 01:50:55,251 log 375393 139870978700992 Bad Request: /api/messages/
+WARNING 2025-12-30 01:50:55,253 log 375393 139870978700992 "POST /api/messages/ HTTP/1.1" 400 60
+INFO 2025-12-30 01:51:01,328 log 375393 139870957729472 "OPTIONS /api/messages/?recipient=5e229334-1fb0-42be-b583-387d7d641554&message_type=private HTTP/1.1" 200 0
+INFO 2025-12-30 01:51:01,362 log 375393 139870957729472 "GET /api/messages/?recipient=5e229334-1fb0-42be-b583-387d7d641554&message_type=private HTTP/1.1" 200 52
+INFO 2025-12-30 01:51:02,102 log 375393 139870957729472 "OPTIONS /api/messages/?recipient=290e87e5-edaf-4dca-8efd-4d739e4356b7&message_type=private HTTP/1.1" 200 0
+INFO 2025-12-30 01:51:02,134 log 375393 139870957729472 "GET /api/messages/?recipient=290e87e5-edaf-4dca-8efd-4d739e4356b7&message_type=private HTTP/1.1" 200 52
+INFO 2025-12-30 01:51:02,660 log 375393 139870957729472 "GET /api/messages/?recipient=5e229334-1fb0-42be-b583-387d7d641554&message_type=private HTTP/1.1" 200 52
+INFO 2025-12-30 01:51:03,658 log 375393 139870957729472 "GET /api/messages/?recipient=022f1292-bf82-4eda-b92c-5bbd20a55937&message_type=private HTTP/1.1" 200 22551
+WARNING 2025-12-30 01:51:05,570 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:51:05,571 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+WARNING 2025-12-30 01:51:12,539 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:51:12,541 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+WARNING 2025-12-30 01:51:21,443 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 01:51:21,444 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+INFO 2025-12-30 01:51:30,967 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18184
+INFO 2025-12-30 01:51:31,054 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 01:51:33,807 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 201 368
+INFO 2025-12-30 01:51:47,817 log 375393 139870978700992 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18183
+INFO 2025-12-30 01:51:47,893 log 375393 139870978700992 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 01:51:56,005 log 375393 139870978700992 "POST /api/messages/ HTTP/1.1" 201 350
+WARNING 2025-12-30 02:21:03,470 log 375393 139870957729472 Unauthorized: /api/groups/
+WARNING 2025-12-30 02:21:03,473 log 375393 139870957729472 "GET /api/groups/ HTTP/1.1" 401 172
+INFO 2025-12-30 02:21:03,507 log 375393 139870957729472 "OPTIONS /api/auth/token/refresh/ HTTP/1.1" 200 0
+INFO 2025-12-30 02:21:03,573 log 375393 139870957729472 "POST /api/auth/token/refresh/ HTTP/1.1" 200 290
+INFO 2025-12-30 02:21:03,689 log 375393 139870957729472 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 02:21:03,767 log 375393 139870957729472 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 02:21:10,229 log 375393 139870957729472 "GET /api/messages/?recipient=022f1292-bf82-4eda-b92c-5bbd20a55937&message_type=private HTTP/1.1" 200 22551
+WARNING 2025-12-30 02:21:14,274 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 02:21:14,276 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
+INFO 2025-12-30 02:21:22,299 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18163
+INFO 2025-12-30 02:21:22,408 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 02:21:24,331 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 201 368
+INFO 2025-12-30 02:21:42,349 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 201 425
+INFO 2025-12-30 02:22:55,967 log 375393 139870957729472 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 02:22:56,001 log 375393 139870957729472 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 02:22:57,646 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18240
+INFO 2025-12-30 02:22:57,735 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 02:23:01,323 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18240
+INFO 2025-12-30 02:23:01,411 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 02:35:03,125 log 375393 139870957729472 "GET /api/groups/ HTTP/1.1" 200 1373
+INFO 2025-12-30 02:35:03,163 log 375393 139870957729472 "GET /api/users/ HTTP/1.1" 200 1741
+INFO 2025-12-30 02:35:05,237 log 375393 139870957729472 "GET /api/messages/?group=62ce2393-71b1-42d8-a06b-73d9ea7fc31e&message_type=group HTTP/1.1" 200 18240
+INFO 2025-12-30 02:35:05,334 log 375393 139870957729472 "GET /api/groups/62ce2393-71b1-42d8-a06b-73d9ea7fc31e/members/ HTTP/1.1" 200 958
+INFO 2025-12-30 02:35:08,398 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 201 367
+INFO 2025-12-30 02:35:27,099 log 375393 139870957729472 "GET /api/messages/?recipient=022f1292-bf82-4eda-b92c-5bbd20a55937&message_type=private HTTP/1.1" 200 22551
+WARNING 2025-12-30 02:35:30,438 log 375393 139870957729472 Bad Request: /api/messages/
+WARNING 2025-12-30 02:35:30,439 log 375393 139870957729472 "POST /api/messages/ HTTP/1.1" 400 60
