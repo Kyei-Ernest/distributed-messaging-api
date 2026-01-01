@@ -85,6 +85,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     recipient = UserSerializer(read_only=True)
+
     group = serializers.PrimaryKeyRelatedField(
         queryset=Group.objects.all(),
         pk_field=serializers.UUIDField(),
@@ -121,13 +122,20 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_group_name(self, obj):
         return obj.group.name if obj.group else None
 
-
     def validate(self, attrs):
-        """Custom validation for messages"""
         message_type = attrs.get('message_type')
-        recipient_id = attrs.get('recipient_id')
+        recipient = attrs.get('recipient')  # IMPORTANT: comes from recipient_id
         group = attrs.get('group')
         request = self.context.get('request')
+
+        # DEBUG LOGS
+        print("=== DEBUG MessageSerializer.validate ===")
+        print(f"Message type: {message_type}")
+        print(f"Request user ID: {request.user.id if request else 'No request'}")
+        print(f"Request user username: {request.user.username if request else 'No request'}")
+        print(f"Recipient from attrs: {recipient}")
+        print(f"Recipient ID: {recipient.id if recipient else 'No recipient'}")
+        print(f"Recipient username: {recipient.username if recipient else 'No recipient'}")
 
         # Validate group messages
         if message_type == 'group':
@@ -135,41 +143,32 @@ class MessageSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'group': 'Group message must have a group.'
                 })
-            
-            # Check if sender is a member of the group
-            if request and not GroupMember.objects.filter(user=request.user, group=group).exists():
+
+            if request and not GroupMember.objects.filter(
+                user=request.user,
+                group=group
+            ).exists():
                 raise serializers.ValidationError({
                     'group': 'You must be a member of this group to send messages.'
                 })
-            
-            # Group messages should not have recipient
-            if recipient_id:
+
+            if recipient:
                 raise serializers.ValidationError({
                     'recipient_id': 'Group messages cannot have a recipient.'
                 })
 
         # Validate private messages
         if message_type == 'private':
-            if not recipient_id:
+            if not recipient:
                 raise serializers.ValidationError({
                     'recipient_id': 'Private messages must have a recipient.'
                 })
 
-            # Check if recipient exists
-            try:
-                recipient = User.objects.get(id=recipient_id)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({
-                    'recipient_id': 'Recipient does not exist.'
-                })
-
-            # Cannot send to self
-            if request and str(recipient_id) == str(request.user.id):
+            if request and recipient.id == request.user.id:
                 raise serializers.ValidationError({
                     'recipient_id': 'Cannot send private message to yourself.'
                 })
-            
-            # Private messages should not have group
+
             if group:
                 raise serializers.ValidationError({
                     'group': 'Private messages cannot belong to a group.'
@@ -178,21 +177,11 @@ class MessageSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Create message with sender and recipient"""
-        recipient_id = validated_data.pop('recipient_id', None)
-        
-        # Set recipient if provided (for private messages)
-        if recipient_id:
-            try:
-                validated_data['recipient'] = User.objects.get(id=recipient_id)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({
-                    'recipient_id': 'Recipient does not exist.'
-                })
-
-        # Sender is set in the view via perform_create
+        """
+        recipient is already resolved by DRF because of
+        source='recipient' on recipient_id
+        """
         return super().create(validated_data)
-
 
 class MessageListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for message lists"""

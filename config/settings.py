@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'corsheaders',
+    'redis',
     
     # Local apps
     'accounts',
@@ -371,6 +372,9 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+FORCE_SCRIPT_NAME = "/dms"
+USE_X_FORWARDED_HOST = True
 
 # ============================================================================
 # STATIC FILES
