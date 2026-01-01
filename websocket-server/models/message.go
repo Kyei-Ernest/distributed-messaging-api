@@ -20,7 +20,9 @@ const (
 	EventUserJoined      EventType = "user_joined"
 	EventUserLeft        EventType = "user_left"
 	EventUserRemoved     EventType = "user_removed"
+	EventMemberPromoted  EventType = "member_promoted"      // NEW
 	EventMessageDeleted  EventType = "message_deleted"
+	EventMessageRead     EventType = "message_read"         // NEW
 	EventTypingIndicator EventType = "typing_indicator"
 	EventError           EventType = "error"
 	EventConnected       EventType = "connected"
@@ -68,26 +70,42 @@ type PrivateMessage struct {
 
 // UserEvent represents user join/leave events
 type UserEvent struct {
-	UserID    string `json:"user_id"`
-	Username  string `json:"username"`
-	GroupID   string `json:"group_id,omitempty"`
-	GroupName string `json:"group_name,omitempty"`
-	IsAdmin   bool   `json:"is_admin,omitempty"`
+	UserID          string `json:"user_id"`
+	Username        string `json:"username"`
+	GroupID         string `json:"group_id,omitempty"`
+	GroupName       string `json:"group_name,omitempty"`
+	IsAdmin         bool   `json:"is_admin,omitempty"`
+	RemovedBy       string `json:"removed_by,omitempty"`           // NEW - for user_removed
+	RemovedByUser   string `json:"removed_by_username,omitempty"`  // NEW
+	PromotedBy      string `json:"promoted_by,omitempty"`          // NEW - for member_promoted
 }
 
 // TypingIndicator represents typing status
 type TypingIndicator struct {
-	UserID    string `json:"user_id"`
-	Username  string `json:"username"`
-	GroupID   string `json:"group_id,omitempty"`
-	IsTyping  bool   `json:"is_typing"`
-	Timestamp string `json:"timestamp"`
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+	GroupID     string `json:"group_id,omitempty"`
+	RecipientID string `json:"recipient_id,omitempty"`  // NEW - for private typing
+	IsTyping    bool   `json:"is_typing"`
+	Timestamp   string `json:"timestamp"`
 }
 
 // MessageDeleted represents a deleted message event
 type MessageDeleted struct {
-	MessageID string `json:"message_id"`
-	DeletedBy string `json:"deleted_by"`
+	MessageID   string `json:"message_id"`
+	DeletedBy   string `json:"deleted_by"`
+	GroupID     string `json:"group_id,omitempty"`      // NEW
+	SenderID    string `json:"sender_id,omitempty"`     // NEW
+	RecipientID string `json:"recipient_id,omitempty"`  // NEW
+	MessageType string `json:"message_type,omitempty"`  // NEW
+}
+
+// MessageRead represents a read receipt - NEW
+type MessageRead struct {
+	MessageID       string `json:"message_id"`
+	ReadBy          string `json:"read_by"`
+	ReadByUsername  string `json:"read_by_username"`
+	Timestamp       string `json:"timestamp"`
 }
 
 // ErrorMessage represents an error response

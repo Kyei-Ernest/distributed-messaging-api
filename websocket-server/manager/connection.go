@@ -197,10 +197,8 @@ func (cm *ConnectionManager) SendToUser(userID string, message []byte) {
 }
 
 // HandleRedisMessage processes messages from Redis Pub/Sub
-// HandleRedisMessage processes messages from Redis Pub/Sub
 func (cm *ConnectionManager) HandleRedisMessage(channel string, payload []byte) {
 	var message map[string]interface{}
-
 	if err := json.Unmarshal(payload, &message); err != nil {
 		log.Printf("Failed to unmarshal Redis message: %v", err)
 		return
@@ -212,34 +210,42 @@ func (cm *ConnectionManager) HandleRedisMessage(channel string, payload []byte) 
 		return
 	}
 
+	log.Printf("📨 Received Redis event: %s", eventType)
+
 	switch eventType {
 	case "group_message":
 		cm.handleGroupMessage(message)
-
 	case "private_message_handler":
 		cm.handlePrivateMessage(message)
-
 	case "user_joined", "user_left", "user_removed":
 		cm.handleUserEvent(message)
-
+	case "member_promoted":  // NEW
+		cm.handleMemberPromoted(message)
 	case "message_deleted":
 		cm.handleMessageDeleted(message)
-
+	case "message_read":  // NEW
+		cm.handleMessageRead(message)
+	case "typing_indicator":  // NEW
+		cm.handleTypingIndicator(message)
 	default:
 		log.Printf("Unknown event type: %s", eventType)
 	}
 }
 
 
+
+
 // handleGroupMessage handles group messages from Redis
 func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
+		log.Println("Invalid data format in group message")
 		return
 	}
 
 	groupID, ok := data["group_id"].(string)
 	if !ok {
+		log.Println("Missing group_id in group message")
 		return
 	}
 
@@ -249,14 +255,21 @@ func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) 
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	msgBytes, _ := json.Marshal(outMsg)
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal group message: %v", err)
+		return
+	}
+	
 	cm.BroadcastToGroup(groupID, msgBytes)
+	log.Printf("✅ Group message broadcasted to group %s", groupID)
 }
 
 // handlePrivateMessage handles private messages from Redis
 func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
+		log.Println("Invalid data format in private message")
 		return
 	}
 
@@ -269,20 +282,28 @@ func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	msgBytes, _ := json.Marshal(outMsg)
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal private message: %v", err)
+		return
+	}
+	
 	cm.SendToUser(senderID, msgBytes)
 	cm.SendToUser(recipientID, msgBytes)
+	log.Printf("✅ Private message sent from %s to %s", senderID, recipientID)
 }
 
 // handleUserEvent handles user join/leave events
 func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
+		log.Println("Invalid data format in user event")
 		return
 	}
 
 	groupID, ok := data["group_id"].(string)
 	if !ok {
+		log.Println("Missing group_id in user event")
 		return
 	}
 
@@ -304,14 +325,144 @@ func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	msgBytes, _ := json.Marshal(outMsg)
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal user event: %v", err)
+		return
+	}
+	
 	cm.BroadcastToGroup(groupID, msgBytes)
+	log.Printf("✅ User event (%s) broadcasted to group %s", event, groupID)
 }
+
+// handleMemberPromoted handles member promotion events - NEW
+func (cm *ConnectionManager) handleMemberPromoted(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in member promoted event")
+		return
+	}
+
+	groupID, ok := data["group_id"].(string)
+	if !ok {
+		log.Println("Missing group_id in member promoted event")
+		return
+	}
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventMemberPromoted,
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal member promoted event: %v", err)
+		return
+	}
+	
+	cm.BroadcastToGroup(groupID, msgBytes)
+	
+	username, _ := data["username"].(string)
+	log.Printf("✅ Member promotion broadcasted: %s in group %s", username, groupID)
+}
+
 
 // handleMessageDeleted handles message deletion events
 func (cm *ConnectionManager) handleMessageDeleted(message map[string]interface{}) {
-	// Implementation similar to handleUserEvent
-	// Broadcast to relevant clients
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in message deleted event")
+		return
+	}
+
+	messageType, _ := data["message_type"].(string)
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventMessageDeleted,
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal message deleted event: %v", err)
+		return
+	}
+
+	if messageType == "group" {
+		groupID, _ := data["group_id"].(string)
+		cm.BroadcastToGroup(groupID, msgBytes)
+		log.Printf("✅ Message deletion broadcasted to group %s", groupID)
+	} else if messageType == "private" {
+		senderID, _ := data["sender_id"].(string)
+		recipientID, _ := data["recipient_id"].(string)
+		cm.SendToUser(senderID, msgBytes)
+		cm.SendToUser(recipientID, msgBytes)
+		log.Printf("✅ Message deletion sent to sender and recipient")
+	}
+}
+
+// handleMessageRead handles read receipt events - NEW
+func (cm *ConnectionManager) handleMessageRead(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in message read event")
+		return
+	}
+
+	messageID, _ := data["message_id"].(string)
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventMessageRead,
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal message read event: %v", err)
+		return
+	}
+
+	// Send read receipt to all connected clients
+	// In a production system, you'd want to track which users should receive this
+	cm.broadcastMessage(msgBytes)
+	log.Printf("✅ Read receipt broadcasted for message %s", messageID)
+}
+
+// handleTypingIndicator handles typing indicator events - NEW
+func (cm *ConnectionManager) handleTypingIndicator(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in typing indicator")
+		return
+	}
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventTypingIndicator,
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal typing indicator: %v", err)
+		return
+	}
+
+	// Check if it's a group or private typing indicator
+	if groupID, ok := data["group_id"].(string); ok {
+		// Group typing indicator
+		cm.BroadcastToGroup(groupID, msgBytes)
+		username, _ := data["username"].(string)
+		log.Printf("✅ Typing indicator broadcasted: %s in group %s", username, groupID)
+	} else if recipientID, ok := data["recipient_id"].(string); ok {
+		// Private typing indicator - send only to recipient
+		cm.SendToUser(recipientID, msgBytes)
+		username, _ := data["username"].(string)
+		log.Printf("✅ Typing indicator sent to user %s", username)
+	}
 }
 
 // Shutdown gracefully shuts down the connection manager
@@ -401,25 +552,36 @@ func (c *Client) WritePump() {
 func (c *Client) handleIncomingMessage(message []byte) {
 	var wsMsg models.WebSocketMessage
 	if err := json.Unmarshal(message, &wsMsg); err != nil {
-		log.Printf("Failed to unmarshal message: %v", err)
+		log.Printf("Failed to unmarshal message from %s: %v", c.Username, err)
 		return
 	}
+
+	log.Printf("📨 Received message from %s: type=%s", c.Username, wsMsg.Type)
 
 	switch wsMsg.Type {
 	case models.EventPing:
 		c.handlePing()
+		
 	case models.EventTypingIndicator:
 		c.handleTypingIndicator(wsMsg.Data)
+		
 	case "subscribe_group":
 		if groupID, ok := wsMsg.Data["group_id"].(string); ok {
 			c.Manager.SubscribeToGroup(c, groupID)
+			log.Printf("✅ %s subscribed to group %s", c.Username, groupID)
 		}
+		
 	case "unsubscribe_group":
 		if groupID, ok := wsMsg.Data["group_id"].(string); ok {
 			c.Manager.UnsubscribeFromGroup(c, groupID)
+			log.Printf("✅ %s unsubscribed from group %s", c.Username, groupID)
 		}
+		
+	case "mark_read":  // NEW - handle read receipts from client
+		c.handleMarkRead(wsMsg.Data)
+		
 	default:
-		log.Printf("Unknown message type: %s", wsMsg.Type)
+		log.Printf("Unknown message type from %s: %s", c.Username, wsMsg.Type)
 	}
 }
 
@@ -434,27 +596,72 @@ func (c *Client) handlePing() {
 
 // handleTypingIndicator broadcasts typing status
 func (c *Client) handleTypingIndicator(data map[string]interface{}) {
-	groupID, ok := data["group_id"].(string)
+	isTyping, _ := data["is_typing"].(bool)
+
+	// Check if it's group or private typing
+	if groupID, ok := data["group_id"].(string); ok {
+		// Group typing indicator
+		indicator := models.OutgoingMessage{
+			Type: models.EventTypingIndicator,
+			Data: map[string]interface{}{
+				"user_id":   c.ID,
+				"username":  c.Username,
+				"group_id":  groupID,
+				"is_typing": isTyping,
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		}
+
+		msgBytes, _ := json.Marshal(indicator)
+		c.Manager.BroadcastToGroup(groupID, msgBytes)
+		log.Printf("✅ Typing indicator from %s in group %s", c.Username, groupID)
+		
+	} else if recipientID, ok := data["recipient_id"].(string); ok {
+		// Private typing indicator
+		indicator := models.OutgoingMessage{
+			Type: models.EventTypingIndicator,
+			Data: map[string]interface{}{
+				"user_id":      c.ID,
+				"username":     c.Username,
+				"recipient_id": recipientID,
+				"is_typing":    isTyping,
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		}
+
+		msgBytes, _ := json.Marshal(indicator)
+		c.Manager.SendToUser(recipientID, msgBytes)
+		log.Printf("✅ Private typing indicator from %s to %s", c.Username, recipientID)
+	}
+}
+
+// handleMarkRead handles read receipts from client - NEW
+func (c *Client) handleMarkRead(data map[string]interface{}) {
+	messageID, ok := data["message_id"].(string)
 	if !ok {
+		log.Printf("Missing message_id in mark_read from %s", c.Username)
 		return
 	}
 
-	isTyping, _ := data["is_typing"].(bool)
-
-	indicator := models.OutgoingMessage{
-		Type: models.EventTypingIndicator,
+	// Create read receipt event
+	readReceipt := models.OutgoingMessage{
+		Type: models.EventMessageRead,
 		Data: map[string]interface{}{
-			"user_id":   c.ID,
-			"username":  c.Username,
-			"group_id":  groupID,
-			"is_typing": isTyping,
+			"message_id":       messageID,
+			"read_by":          c.ID,
+			"read_by_username": c.Username,
+			"timestamp":        time.Now().Format(time.RFC3339),
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	msgBytes, _ := json.Marshal(indicator)
-	c.Manager.BroadcastToGroup(groupID, msgBytes)
+	msgBytes, _ := json.Marshal(readReceipt)
+	
+	// Broadcast to all clients (or just the sender in a more sophisticated implementation)
+	c.Manager.Broadcast <- msgBytes
+	log.Printf("✅ Read receipt from %s for message %s", c.Username, messageID)
 }
+
 
 // SendMessage sends a message to the client
 func (c *Client) SendMessage(msg models.OutgoingMessage) {
