@@ -12,34 +12,25 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the peer
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period (must be less than pongWait)
-	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer
-	maxMessageSize = 512 * 1024 // 512 KB
+	writeWait      = 10 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
+	maxMessageSize = 512 * 1024
 )
 
-// Client represents a WebSocket client
 type Client struct {
 	ID       string
 	Username string
 	Conn     *websocket.Conn
 	Send     chan []byte
 	Manager  *ConnectionManager
-	Groups   map[string]bool // Group IDs the client is subscribed to
+	Groups   map[string]bool
 	mu       sync.RWMutex
 }
 
-// ConnectionManager manages all WebSocket connections
 type ConnectionManager struct {
-	clients    map[string]*Client    // userID -> Client
-	groups     map[string]map[string]*Client // groupID -> (userID -> Client)
+	clients    map[string]*Client
+	groups     map[string]map[string]*Client
 	Register   chan *Client
 	Unregister chan *Client
 	Broadcast  chan []byte
@@ -47,7 +38,6 @@ type ConnectionManager struct {
 	pubsub     *pubsub.RedisPubSub
 }
 
-// NewConnectionManager creates a new connection manager
 func NewConnectionManager(ps *pubsub.RedisPubSub) *ConnectionManager {
 	cm := &ConnectionManager{
 		clients:    make(map[string]*Client),
@@ -62,23 +52,19 @@ func NewConnectionManager(ps *pubsub.RedisPubSub) *ConnectionManager {
 	return cm
 }
 
-// run handles client registration, unregistration, and broadcasting
 func (cm *ConnectionManager) run() {
 	for {
 		select {
 		case client := <-cm.Register:
 			cm.registerClient(client)
-
 		case client := <-cm.Unregister:
 			cm.unregisterClient(client)
-
 		case message := <-cm.Broadcast:
 			cm.broadcastMessage(message)
 		}
 	}
 }
 
-// registerClient registers a new client
 func (cm *ConnectionManager) registerClient(client *Client) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -86,9 +72,11 @@ func (cm *ConnectionManager) registerClient(client *Client) {
 	client.Groups = make(map[string]bool)
 	cm.clients[client.ID] = client
 	log.Printf("Client registered: %s (Total: %d)", client.Username, len(cm.clients))
+
+	// Publish user online status to Redis
+	cm.publishUserStatus(client.ID, client.Username, "online")
 }
 
-// unregisterClient removes a client
 func (cm *ConnectionManager) unregisterClient(client *Client) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -106,14 +94,62 @@ func (cm *ConnectionManager) unregisterClient(client *Client) {
 		}
 		client.mu.RUnlock()
 
-		// Close send channel and remove client
 		close(client.Send)
 		delete(cm.clients, client.ID)
 		log.Printf("Client unregistered: %s (Total: %d)", client.Username, len(cm.clients))
+
+		// Publish user offline status to Redis
+		cm.publishUserStatus(client.ID, client.Username, "offline")
 	}
 }
 
-// broadcastMessage sends a message to all connected clients
+// publishUserStatus publishes user online/offline status to Redis
+func (cm *ConnectionManager) publishUserStatus(userID, username, status string) {
+	statusMsg := map[string]interface{}{
+		"type": "user_status",
+		"data": map[string]interface{}{
+			"user_id":   userID,
+			"username":  username,
+			"status":    status,
+			"timestamp": time.Now().Format(time.RFC3339),
+		},
+	}
+
+	msgBytes, err := json.Marshal(statusMsg)
+	if err != nil {
+		log.Printf("Failed to marshal user status: %v", err)
+		return
+	}
+
+	if err := cm.pubsub.Publish("messaging_events", msgBytes); err != nil {
+		log.Printf("Failed to publish user status: %v", err)
+		return
+	}
+
+	log.Printf("📡 Published user status: %s is %s", username, status)
+}
+
+// GetOnlineUsers returns a list of currently online user IDs
+func (cm *ConnectionManager) GetOnlineUsers() []string {
+	cm.mu.RLock()
+	defer cm.mu.RUnlock()
+
+	users := make([]string, 0, len(cm.clients))
+	for userID := range cm.clients {
+		users = append(users, userID)
+	}
+	return users
+}
+
+// IsUserOnline checks if a specific user is online
+func (cm *ConnectionManager) IsUserOnline(userID string) bool {
+	cm.mu.RLock()
+	defer cm.mu.RUnlock()
+
+	_, exists := cm.clients[userID]
+	return exists
+}
+
 func (cm *ConnectionManager) broadcastMessage(message []byte) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
@@ -128,7 +164,6 @@ func (cm *ConnectionManager) broadcastMessage(message []byte) {
 	}
 }
 
-// SubscribeToGroup subscribes a client to a group channel
 func (cm *ConnectionManager) SubscribeToGroup(client *Client, groupID string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -145,7 +180,6 @@ func (cm *ConnectionManager) SubscribeToGroup(client *Client, groupID string) {
 	log.Printf("Client %s subscribed to group %s", client.Username, groupID)
 }
 
-// UnsubscribeFromGroup unsubscribes a client from a group
 func (cm *ConnectionManager) UnsubscribeFromGroup(client *Client, groupID string) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -164,7 +198,6 @@ func (cm *ConnectionManager) UnsubscribeFromGroup(client *Client, groupID string
 	log.Printf("Client %s unsubscribed from group %s", client.Username, groupID)
 }
 
-// BroadcastToGroup sends a message to all clients in a group
 func (cm *ConnectionManager) BroadcastToGroup(groupID string, message []byte) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
@@ -181,7 +214,6 @@ func (cm *ConnectionManager) BroadcastToGroup(groupID string, message []byte) {
 	}
 }
 
-// SendToUser sends a message to a specific user
 func (cm *ConnectionManager) SendToUser(userID string, message []byte) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
@@ -196,7 +228,6 @@ func (cm *ConnectionManager) SendToUser(userID string, message []byte) {
 	}
 }
 
-// HandleRedisMessage processes messages from Redis Pub/Sub
 func (cm *ConnectionManager) HandleRedisMessage(channel string, payload []byte) {
 	var message map[string]interface{}
 	if err := json.Unmarshal(payload, &message); err != nil {
@@ -219,23 +250,88 @@ func (cm *ConnectionManager) HandleRedisMessage(channel string, payload []byte) 
 		cm.handlePrivateMessage(message)
 	case "user_joined", "user_left", "user_removed":
 		cm.handleUserEvent(message)
-	case "member_promoted":  // NEW
+	case "member_promoted":
 		cm.handleMemberPromoted(message)
 	case "message_deleted":
 		cm.handleMessageDeleted(message)
-	case "message_read":  // NEW
+	case "message_read":
 		cm.handleMessageRead(message)
-	case "typing_indicator":  // NEW
+	case "typing_indicator":
 		cm.handleTypingIndicator(message)
+	case "unread_count_update":
+		cm.handleUnreadCountUpdate(message)
+	case "user_status":
+		cm.handleUserStatus(message)
+	case "request_online_users":
+		cm.handleOnlineUsersRequest(message)
 	default:
 		log.Printf("Unknown event type: %s", eventType)
 	}
 }
 
+// handleUserStatus broadcasts user online/offline status
+func (cm *ConnectionManager) handleUserStatus(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in user status")
+		return
+	}
 
+	outMsg := models.OutgoingMessage{
+		Type:      "user_status",
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
 
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal user status: %v", err)
+		return
+	}
 
-// handleGroupMessage handles group messages from Redis
+	// Broadcast to all connected clients
+	cm.broadcastMessage(msgBytes)
+	
+	userID, _ := data["user_id"].(string)
+	status, _ := data["status"].(string)
+	log.Printf("✅ User status broadcasted: %s is %s", userID, status)
+}
+
+// handleOnlineUsersRequest sends the list of online users to requester
+func (cm *ConnectionManager) handleOnlineUsersRequest(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in online users request")
+		return
+	}
+
+	requesterID, ok := data["requester_id"].(string)
+	if !ok {
+		log.Println("Missing requester_id in online users request")
+		return
+	}
+
+	onlineUsers := cm.GetOnlineUsers()
+
+	outMsg := models.OutgoingMessage{
+		Type: "online_users_list",
+		Data: map[string]interface{}{
+			"online_users": onlineUsers,
+			"count":        len(onlineUsers),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal online users list: %v", err)
+		return
+	}
+
+	cm.SendToUser(requesterID, msgBytes)
+	log.Printf("✅ Online users list sent to %s (%d users)", requesterID, len(onlineUsers))
+}
+
 func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -265,7 +361,6 @@ func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) 
 	log.Printf("✅ Group message broadcasted to group %s", groupID)
 }
 
-// handlePrivateMessage handles private messages from Redis
 func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -293,7 +388,6 @@ func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}
 	log.Printf("✅ Private message sent from %s to %s", senderID, recipientID)
 }
 
-// handleUserEvent handles user join/leave events
 func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -335,7 +429,6 @@ func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 	log.Printf("✅ User event (%s) broadcasted to group %s", event, groupID)
 }
 
-// handleMemberPromoted handles member promotion events - NEW
 func (cm *ConnectionManager) handleMemberPromoted(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -367,8 +460,6 @@ func (cm *ConnectionManager) handleMemberPromoted(message map[string]interface{}
 	log.Printf("✅ Member promotion broadcasted: %s in group %s", username, groupID)
 }
 
-
-// handleMessageDeleted handles message deletion events
 func (cm *ConnectionManager) handleMessageDeleted(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -403,7 +494,6 @@ func (cm *ConnectionManager) handleMessageDeleted(message map[string]interface{}
 	}
 }
 
-// handleMessageRead handles read receipt events - NEW
 func (cm *ConnectionManager) handleMessageRead(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -412,6 +502,7 @@ func (cm *ConnectionManager) handleMessageRead(message map[string]interface{}) {
 	}
 
 	messageID, _ := data["message_id"].(string)
+	readBy, _ := data["read_by"].(string)
 
 	outMsg := models.OutgoingMessage{
 		Type:      models.EventMessageRead,
@@ -425,13 +516,40 @@ func (cm *ConnectionManager) handleMessageRead(message map[string]interface{}) {
 		return
 	}
 
-	// Send read receipt to all connected clients
-	// In a production system, you'd want to track which users should receive this
+	cm.SendToUser(readBy, msgBytes)
 	cm.broadcastMessage(msgBytes)
-	log.Printf("✅ Read receipt broadcasted for message %s", messageID)
+	log.Printf("✅ Read receipt broadcasted for message %s by user %s", messageID, readBy)
 }
 
-// handleTypingIndicator handles typing indicator events - NEW
+func (cm *ConnectionManager) handleUnreadCountUpdate(message map[string]interface{}) {
+	data, ok := message["data"].(map[string]interface{})
+	if !ok {
+		log.Println("Invalid data format in unread count update")
+		return
+	}
+
+	userID, ok := data["user_id"].(string)
+	if !ok {
+		log.Println("Missing user_id in unread count update")
+		return
+	}
+
+	outMsg := models.OutgoingMessage{
+		Type:      "unread_count_update",
+		Data:      data,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, err := json.Marshal(outMsg)
+	if err != nil {
+		log.Printf("Failed to marshal unread count update: %v", err)
+		return
+	}
+
+	cm.SendToUser(userID, msgBytes)
+	log.Printf("✅ Unread count update sent to user %s", userID)
+}
+
 func (cm *ConnectionManager) handleTypingIndicator(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -451,21 +569,17 @@ func (cm *ConnectionManager) handleTypingIndicator(message map[string]interface{
 		return
 	}
 
-	// Check if it's a group or private typing indicator
 	if groupID, ok := data["group_id"].(string); ok {
-		// Group typing indicator
 		cm.BroadcastToGroup(groupID, msgBytes)
 		username, _ := data["username"].(string)
 		log.Printf("✅ Typing indicator broadcasted: %s in group %s", username, groupID)
 	} else if recipientID, ok := data["recipient_id"].(string); ok {
-		// Private typing indicator - send only to recipient
 		cm.SendToUser(recipientID, msgBytes)
 		username, _ := data["username"].(string)
 		log.Printf("✅ Typing indicator sent to user %s", username)
 	}
 }
 
-// Shutdown gracefully shuts down the connection manager
 func (cm *ConnectionManager) Shutdown() {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
@@ -477,7 +591,6 @@ func (cm *ConnectionManager) Shutdown() {
 	log.Println("All connections closed")
 }
 
-// ReadPump pumps messages from the WebSocket connection to the manager
 func (c *Client) ReadPump() {
 	defer func() {
 		c.Manager.Unregister <- c
@@ -500,12 +613,10 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		// Handle incoming message
 		c.handleIncomingMessage(message)
 	}
 }
 
-// WritePump pumps messages from the manager to the WebSocket connection
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -528,7 +639,6 @@ func (c *Client) WritePump() {
 			}
 			w.Write(message)
 
-			// Add queued messages
 			n := len(c.Send)
 			for i := 0; i < n; i++ {
 				w.Write([]byte{'\n'})
@@ -548,7 +658,7 @@ func (c *Client) WritePump() {
 	}
 }
 
-// handleIncomingMessage processes incoming WebSocket messages
+// FIXED: Added case for "request_online_users"
 func (c *Client) handleIncomingMessage(message []byte) {
 	var wsMsg models.WebSocketMessage
 	if err := json.Unmarshal(message, &wsMsg); err != nil {
@@ -577,15 +687,18 @@ func (c *Client) handleIncomingMessage(message []byte) {
 			log.Printf("✅ %s unsubscribed from group %s", c.Username, groupID)
 		}
 		
-	case "mark_read":  // NEW - handle read receipts from client
+	case "mark_read":
 		c.handleMarkRead(wsMsg.Data)
+		
+	case "request_online_users":
+		// ✅ FIXED: Added this case
+		c.handleRequestOnlineUsers()
 		
 	default:
 		log.Printf("Unknown message type from %s: %s", c.Username, wsMsg.Type)
 	}
 }
 
-// handlePing responds to ping with pong
 func (c *Client) handlePing() {
 	pongMsg := models.OutgoingMessage{
 		Type:      models.EventPong,
@@ -594,13 +707,10 @@ func (c *Client) handlePing() {
 	c.SendMessage(pongMsg)
 }
 
-// handleTypingIndicator broadcasts typing status
 func (c *Client) handleTypingIndicator(data map[string]interface{}) {
 	isTyping, _ := data["is_typing"].(bool)
 
-	// Check if it's group or private typing
 	if groupID, ok := data["group_id"].(string); ok {
-		// Group typing indicator
 		indicator := models.OutgoingMessage{
 			Type: models.EventTypingIndicator,
 			Data: map[string]interface{}{
@@ -617,7 +727,6 @@ func (c *Client) handleTypingIndicator(data map[string]interface{}) {
 		log.Printf("✅ Typing indicator from %s in group %s", c.Username, groupID)
 		
 	} else if recipientID, ok := data["recipient_id"].(string); ok {
-		// Private typing indicator
 		indicator := models.OutgoingMessage{
 			Type: models.EventTypingIndicator,
 			Data: map[string]interface{}{
@@ -635,7 +744,6 @@ func (c *Client) handleTypingIndicator(data map[string]interface{}) {
 	}
 }
 
-// handleMarkRead handles read receipts from client - NEW
 func (c *Client) handleMarkRead(data map[string]interface{}) {
 	messageID, ok := data["message_id"].(string)
 	if !ok {
@@ -643,7 +751,6 @@ func (c *Client) handleMarkRead(data map[string]interface{}) {
 		return
 	}
 
-	// Create read receipt event
 	readReceipt := models.OutgoingMessage{
 		Type: models.EventMessageRead,
 		Data: map[string]interface{}{
@@ -656,14 +763,27 @@ func (c *Client) handleMarkRead(data map[string]interface{}) {
 	}
 
 	msgBytes, _ := json.Marshal(readReceipt)
-	
-	// Broadcast to all clients (or just the sender in a more sophisticated implementation)
 	c.Manager.Broadcast <- msgBytes
 	log.Printf("✅ Read receipt from %s for message %s", c.Username, messageID)
 }
 
+// handleRequestOnlineUsers sends the current online users list to the client
+func (c *Client) handleRequestOnlineUsers() {
+	onlineUsers := c.Manager.GetOnlineUsers()
 
-// SendMessage sends a message to the client
+	response := models.OutgoingMessage{
+		Type: "online_users_list",
+		Data: map[string]interface{}{
+			"online_users": onlineUsers,
+			"count":        len(onlineUsers),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	c.SendMessage(response)
+	log.Printf("✅ Online users list sent to %s (%d users)", c.Username, len(onlineUsers))
+}
+
 func (c *Client) SendMessage(msg models.OutgoingMessage) {
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
