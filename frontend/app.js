@@ -1169,19 +1169,24 @@ class MessagingApp {
             
             if (wasOnline !== user.is_online) {
                 console.log(`  ${user.username}: ${wasOnline ? 'online' : 'offline'} → ${user.is_online ? 'online' : 'offline'}`);
+                
+                // ✅ INSTANT UPDATE: Update UI immediately without re-render
+                this.updateOnlineStatusUI(user.id.toString(), user.is_online);
             }
         });
         
         // Update in allChats
         this.allChats.forEach(chat => {
             if (chat.type === 'user') {
+                const wasOnline = chat.is_online;
                 chat.is_online = onlineUserIds.includes(chat.id.toString());
+                
+                if (wasOnline !== chat.is_online) {
+                    // ✅ INSTANT UPDATE: Update chat list badges immediately
+                    this.updateOnlineStatusUI(chat.id.toString(), chat.is_online);
+                }
             }
         });
-        
-        // Re-render to show updated status
-        this.renderUsers();
-        this.renderChats();
         
         // Update current chat header if it's a private chat
         if (this.currentChat?.type === 'private') {
@@ -1189,7 +1194,7 @@ class MessagingApp {
             this.updateChatHeaderStatus(isOnline);
         }
         
-        console.log('✅ Online status synchronized with server');
+        console.log('✅ Online status synchronized with server (instant updates)');
     }
     // ========================================================================
     // User Status Change Handler
@@ -1200,10 +1205,9 @@ class MessagingApp {
         
         const userId = data.user_id;
         const username = data.username;
-        const status = data.status; // 'online' or 'offline'
+        const status = data.status;
         const isOnline = status === 'online';
         
-        // Convert userId to string for comparison (in case of type mismatch)
         const userIdStr = userId.toString();
         
         // Update in users array
@@ -1221,10 +1225,10 @@ class MessagingApp {
             this.allChats[chatIndex].is_online = isOnline;
         }
         
-        // Update UI elements
+        // ✅ INSTANT UPDATE: Update UI immediately without re-render
         this.updateOnlineStatusUI(userIdStr, isOnline);
         
-        // Show toast notification if it's a contact coming online/offline
+        // Show toast notification
         if (this.isUserInContacts(userIdStr)) {
             const message = isOnline 
                 ? `${username} is now online` 
@@ -1232,7 +1236,7 @@ class MessagingApp {
             UI.showToast(message, isOnline ? 'success' : 'info', 2000);
         }
         
-        // If currently chatting with this user, update chat header
+        // Update chat header if currently chatting with this user
         if (this.currentChat?.type === 'private' && this.currentChat.id.toString() === userIdStr) {
             this.updateChatHeaderStatus(isOnline);
         }
@@ -1285,23 +1289,35 @@ class MessagingApp {
 
     // 3. Update all UI elements showing this user's status
     updateOnlineStatusUI(userId, isOnline) {
-        // Update status badges in sidebar
+        const statusClass = isOnline ? 'online' : 'offline';
+        
+        // Update all status badges for this user (instant transition)
         const statusBadges = document.querySelectorAll(`[data-user-id="${userId}"] .status-badge`);
         statusBadges.forEach(badge => {
+            // Remove both classes first
             badge.classList.remove('online', 'offline');
-            badge.classList.add(isOnline ? 'online' : 'offline');
+            // Add the correct class (CSS handles the transition)
+            badge.classList.add(statusClass);
         });
         
-        // Update in chat list
-        const chatItems = document.querySelectorAll(`[data-user-id="${userId}"][data-type="user"]`);
-        chatItems.forEach(item => {
+        // Update in user list items
+        const userItems = document.querySelectorAll(`[data-user-id="${userId}"][data-type="user"]`);
+        userItems.forEach(item => {
             const badge = item.querySelector('.status-badge');
             if (badge) {
                 badge.classList.remove('online', 'offline');
-                badge.classList.add(isOnline ? 'online' : 'offline');
+                badge.classList.add(statusClass);
             }
         });
+        
+        // Update in member lists (group info sidebar)
+        const memberItems = document.querySelectorAll(`.member-item[data-user-id="${userId}"] .status-badge`);
+        memberItems.forEach(badge => {
+            badge.classList.remove('online', 'offline');
+            badge.classList.add(statusClass);
+        });
     }
+
 
     // 4. Update chat header status indicator
     updateChatHeaderStatus(isOnline) {
@@ -1453,6 +1469,7 @@ class MessagingApp {
             }
         };
 
+        // Clear unread count
         if (this.unreadCounts.all_chats[selectedUserId]) {
             this.unreadCounts.total -= this.unreadCounts.all_chats[selectedUserId];
             delete this.unreadCounts.all_chats[selectedUserId];
@@ -1465,7 +1482,6 @@ class MessagingApp {
             this.markedAsRead.clear();
         }
         
-
         // Push to history for back button support
         if (window.history && window.history.pushState) {
             window.history.pushState({ chat: 'private', id: selectedUserId }, '', `#chat-${selectedUserId}`);
@@ -1473,18 +1489,29 @@ class MessagingApp {
 
         console.log('Current chat set to:', this.currentChat);
 
-
         // Update UI - CRITICAL: Ensure message input is shown
         UI.hide('empty-state');
         UI.show('chat-header');
         UI.show('messages-container');
-        UI.show('message-input-container'); // This is critical!
+        UI.show('message-input-container');
         
-        // Load messages
-        await this.loadMessages();
-        
-        // IMPORTANT: Load read status AFTER messages are loaded
-        await this.loadReadMessages();
+        // ⭐ FIX: Load messages ONCE, then load read status WITHOUT reloading
+        try {
+            // Clear the messages list first to prevent duplicates
+            const container = document.getElementById('messages-list');
+            container.innerHTML = '';
+            
+            // Load messages
+            await this.loadMessages();
+            
+            // IMPORTANT: Load read status AFTER messages are loaded
+            // This should NOT trigger another load
+            await this.loadReadMessages();
+            
+        } catch (error) {
+            console.error('Error loading chat:', error);
+            UI.showToast('Error loading messages', 'error');
+        }
 
         // CRITICAL FIX: Force display message input on mobile
         const inputContainer = document.getElementById('message-input-container');
@@ -1507,9 +1534,6 @@ class MessagingApp {
         document.getElementById('chat-title').textContent = user.username;
         document.getElementById('chat-subtitle').textContent = user.email || 'Private chat';
         document.getElementById('chat-avatar-initials').textContent = UI.getInitials(user.username);
-
-        // Load messages
-        await this.loadMessages();
         
         // Hide mobile navigation
         this.updateMobileNav();
@@ -2264,8 +2288,6 @@ class MessagingApp {
 
     async loadGroupInfo(groupId) {
         try {
-            
-                    
             const groupDetails = await api.getGroup(groupId);
             const members = await api.getGroupMembers(groupId);
             
@@ -2277,10 +2299,45 @@ class MessagingApp {
             const container = document.getElementById('info-members-list');
             container.innerHTML = '';
             
+            // Add instruction text
+            const instructionDiv = document.createElement('div');
+            instructionDiv.style.cssText = `
+                font-size: 12px;
+                color: var(--text-tertiary);
+                margin-bottom: 12px;
+                padding: 8px 12px;
+                background: var(--bg-secondary);
+                border-radius: var(--radius-sm);
+                border-left: 3px solid var(--primary-color);
+            `;
+            instructionDiv.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Tap on any member to start a private chat
+            `;
+            container.appendChild(instructionDiv);
+            
             const isAdmin = groupDetails.is_admin;
             const isCreator = groupDetails.created_by?.id === this.currentUser.id;
             
-            members.members.forEach(member => {
+            // Sort members: current user first, then admins, then by name
+            const sortedMembers = [...members.members].sort((a, b) => {
+                // Current user first
+                if (a.user.id === this.currentUser.id) return -1;
+                if (b.user.id === this.currentUser.id) return 1;
+                
+                // Then admins
+                if (a.is_admin && !b.is_admin) return -1;
+                if (!a.is_admin && b.is_admin) return 1;
+                
+                // Then alphabetically
+                return a.user.username.localeCompare(b.user.username);
+            });
+            
+            sortedMembers.forEach(member => {
                 const memberDiv = this.createMemberItemWithControls(member, isAdmin, isCreator);
                 container.appendChild(memberDiv);
             });
@@ -2288,6 +2345,7 @@ class MessagingApp {
             console.error('Failed to load group info:', error);
         }
     }
+
 
     createMemberItemWithControls(member, currentUserIsAdmin, currentUserIsCreator) {
         const div = document.createElement('div');
@@ -2297,21 +2355,40 @@ class MessagingApp {
         const avatarColor = UI.generateAvatarColor(member.user.username);
         const isCurrentUser = member.user.id === this.currentUser.id;
         
+        // Check if user is online
+        const userOnlineStatus = this.users.find(u => u.id === member.user.id);
+        const isOnline = userOnlineStatus ? userOnlineStatus.is_online : false;
+        
+        // Make clickable if not current user
+        if (!isCurrentUser) {
+            div.classList.add('clickable-member');
+            div.setAttribute('title', `Click to chat with ${member.user.username}`);
+        }
+        
         div.innerHTML = `
-            <div class="avatar avatar-sm" style="background: ${avatarColor}">
+            <div class="avatar avatar-sm" style="background: ${avatarColor}; position: relative;">
                 <span>${UI.getInitials(member.user.username)}</span>
+                ${!isCurrentUser ? `<span class="status-badge ${isOnline ? 'online' : 'offline'}"></span>` : ''}
             </div>
             <div class="member-info">
                 <div class="member-name">
                     ${UI.escapeHtml(member.user.username)}
                     ${isCurrentUser ? ' (You)' : ''}
+                    ${isOnline && !isCurrentUser ? '<span style="color: var(--success-color); font-size: 10px; margin-left: 4px;">● Online</span>' : ''}
                 </div>
                 <div class="member-role">
                     ${member.is_admin ? '👑 Admin' : 'Member'}
                 </div>
             </div>
+            ${!isCurrentUser ? `
+                <div class="member-chat-icon" style="opacity: 0.6; transition: opacity 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary-color);">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+            ` : ''}
             ${currentUserIsAdmin && !isCurrentUser ? `
-                <div class="member-actions">
+                <div class="member-actions" style="display: flex; gap: 4px;">
                     ${!member.is_admin ? `
                         <button class="btn-icon btn-sm" title="Make Admin" data-action="promote" data-user-id="${member.user.id}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2329,15 +2406,58 @@ class MessagingApp {
             ` : ''}
         `;
         
-        // Add event listeners for admin actions
-        if (currentUserIsAdmin && !isCurrentUser) {
-            div.querySelector('[data-action="promote"]')?.addEventListener('click', () => {
-                this.handlePromoteMember(member.user.id, member.user.username);
+        // Add click handler to open private chat (if not current user)
+        if (!isCurrentUser) {
+            div.addEventListener('click', (e) => {
+                // Don't trigger if clicking on action buttons
+                if (e.target.closest('.member-actions')) {
+                    return;
+                }
+                
+                console.log('Opening private chat with member:', member.user.username);
+                
+                // Add visual feedback
+                div.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    div.style.transform = '';
+                }, 100);
+                
+                // Close info sidebar
+                UI.hide('info-sidebar');
+                UI.show('message-input-container');
+                
+                // Open private chat with this user
+                this.openPrivateChat(member.user);
             });
             
-            div.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
-                this.handleRemoveMember(member.user.id, member.user.username);
+            // Show chat icon on hover
+            const chatIcon = div.querySelector('.member-chat-icon');
+            div.addEventListener('mouseenter', () => {
+                if (chatIcon) chatIcon.style.opacity = '1';
             });
+            div.addEventListener('mouseleave', () => {
+                if (chatIcon) chatIcon.style.opacity = '0.6';
+            });
+        }
+        
+        // Add event listeners for admin actions
+        if (currentUserIsAdmin && !isCurrentUser) {
+            const promoteBtn = div.querySelector('[data-action="promote"]');
+            const removeBtn = div.querySelector('[data-action="remove"]');
+            
+            if (promoteBtn) {
+                promoteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.handlePromoteMember(member.user.id, member.user.username);
+                });
+            }
+            
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.handleRemoveMember(member.user.id, member.user.username);
+                });
+            }
         }
         
         return div;

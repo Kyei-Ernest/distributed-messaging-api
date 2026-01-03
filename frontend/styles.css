@@ -2387,3 +2387,497 @@ a:hover {
     justify-content: center;
     border: 2px solid var(--bg-primary);
 }
+
+/* ============================================================================
+   Clickable Group Members & Smooth Status Transitions
+   ============================================================================ */
+
+/* Make member items clickable */
+.member-item.clickable-member {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--radius-sm);
+}
+
+.member-item.clickable-member:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(4px);
+}
+
+.member-item.clickable-member:active {
+    transform: translateX(2px) scale(0.98);
+}
+
+/* Prevent hover effect when clicking action buttons */
+.member-item.clickable-member:has(.member-actions button:hover) {
+    background: var(--bg-secondary);
+    transform: none;
+}
+
+/* Smooth status badge transitions */
+.status-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-primary);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.status-badge.online {
+    background: var(--success-color);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+.status-badge.offline {
+    background: var(--text-tertiary);
+    box-shadow: none;
+}
+
+/* Pulse animation for online status */
+@keyframes statusPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+}
+
+/* Status indicator in chat header */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.status-indicator.online {
+    background: var(--success-color);
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
+.status-indicator.offline {
+    background: var(--text-tertiary);
+}
+
+/* List item status badges */
+.list-item .status-badge {
+    transition: all 0.3s ease;
+}
+
+/* Smooth transition for status changes in lists */
+.list-item[data-type="user"] {
+    transition: background-color 0.2s ease;
+}
+
+/* Visual feedback for clickable members */
+.member-item.clickable-member::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--primary-color);
+    border-radius: 0 2px 2px 0;
+    transition: height 0.2s ease;
+}
+
+.member-item.clickable-member:hover::before {
+    height: 60%;
+}
+
+/* Member info styling */
+.member-item.clickable-member .member-info {
+    transition: transform 0.2s ease;
+}
+
+.member-item.clickable-member:hover .member-info {
+    transform: translateX(2px);
+}
+
+/* Action buttons - prevent triggering chat */
+.member-actions {
+    z-index: 10;
+    position: relative;
+}
+
+.member-actions button {
+    z-index: 11;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .member-item.clickable-member:hover {
+        transform: none;
+        background: var(--bg-secondary);
+    }
+    
+    .member-item.clickable-member:active {
+        background: var(--bg-tertiary);
+        transform: scale(0.98);
+    }
+    
+    .member-item.clickable-member::before {
+        display: none;
+    }
+    
+    /* Larger touch targets for mobile */
+    .member-item.clickable-member {
+        min-height: 60px;
+        padding: 12px;
+    }
+    
+    .member-actions button {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+/* Tooltip for member items (optional) */
+.member-item.clickable-member[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+}
+
+.member-item.clickable-member:hover[data-tooltip]::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* Status change animation */
+@keyframes statusChange {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.status-badge.status-changed {
+    animation: statusChange 0.4s ease;
+}
+
+/* Enhance the visual hierarchy */
+.member-item.clickable-member:not(:last-child) {
+    margin-bottom: 6px;
+}
+
+/* Group info member list spacing */
+#info-members-list .member-item {
+    margin-bottom: 8px;
+}
+
+#info-members-list .member-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Better focus states for accessibility */
+.member-item.clickable-member:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Disabled state for current user */
+.member-item.clickable-member[data-is-current-user="true"] {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.member-item.clickable-member[data-is-current-user="true"]:hover {
+    background: var(--bg-secondary);
+    transform: none;
+}
+
+.member-item.clickable-member[data-is-current-user="true"]::before {
+    display: none;
+}
+
+/* ============================================================================
+   Member Item Layout with Chat Icon
+   ============================================================================ */
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    position: relative;
+}
+
+/* Clickable member styling */
+.member-item.clickable-member {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.member-item.clickable-member:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(2px);
+}
+
+.member-item.clickable-member:active {
+    transform: scale(0.98);
+}
+
+/* Avatar container */
+.member-item .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Member info */
+.member-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.member-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-role {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* Chat icon indicator */
+.member-chat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.1);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.member-item.clickable-member:hover .member-chat-icon {
+    background: rgba(79, 70, 229, 0.2);
+    transform: scale(1.1);
+}
+
+/* Action buttons */
+.member-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.member-actions button {
+    z-index: 11;
+}
+
+/* Prevent hover effect when hovering over actions */
+.member-item.clickable-member:has(.member-actions button:hover) {
+    background: var(--bg-secondary);
+    transform: none;
+}
+
+/* Status badge smooth transitions */
+.status-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-secondary);
+    transition: all 0.3s ease;
+}
+
+.status-badge.online {
+    background: var(--success-color);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.offline {
+    background: var(--text-tertiary);
+}
+
+/* Online indicator text */
+.member-name .online-text {
+    color: var(--success-color);
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+/* Instruction box */
+.member-instruction {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Members list container */
+#info-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Hover effect line indicator */
+.member-item.clickable-member::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--primary-color);
+    border-radius: 0 2px 2px 0;
+    transition: height 0.2s ease;
+}
+
+.member-item.clickable-member:hover::before {
+    height: 70%;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .member-item {
+        padding: 12px 10px;
+        min-height: 60px;
+    }
+    
+    .member-item .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .member-name {
+        font-size: 15px;
+    }
+    
+    .member-role {
+        font-size: 13px;
+    }
+    
+    .member-chat-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .member-item.clickable-member:hover {
+        transform: none;
+    }
+    
+    .member-item.clickable-member:active {
+        background: var(--bg-tertiary);
+        transform: scale(0.98);
+    }
+    
+    .member-item.clickable-member::before {
+        display: none;
+    }
+    
+    /* Larger touch targets */
+    .member-actions button {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .status-badge {
+    border-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .member-chat-icon {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="dark"] .member-item.clickable-member:hover .member-chat-icon {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+/* Accessibility */
+.member-item.clickable-member:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Animation for new members */
+@keyframes memberSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.member-item {
+    animation: memberSlideIn 0.3s ease;
+}
+
+/* Ripple effect on click */
+.member-item.clickable-member::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.3);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.member-item.clickable-member:active::after {
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+}
