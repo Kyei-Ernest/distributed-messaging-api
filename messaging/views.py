@@ -16,7 +16,7 @@ import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from .models import Group, GroupMember, Message
+from .models import Group, GroupMember, Message, MessageReadReceipt
 from .serializers import GroupSerializer, GroupMemberSerializer, MessageSerializer
 from .permissions import IsGroupMember, IsGroupAdmin, IsGroupCreator, IsMessageSender, CanAccessMessage
 import logging
@@ -434,6 +434,17 @@ class MessageViewSet(viewsets.ModelViewSet):
                 'group_name': message.group.name
             })
             logger.debug(f"Group message broadcast to group {message.group.name}")
+            
+            # IMPORTANT: Broadcast unread count update to all group members (except sender)
+            for member in message.group.groupmember_set.exclude(user=self.request.user):
+                updated_counts = self._get_unread_counts_for_user(member.user)
+                broadcast_to_redis('unread_count_update', {
+                    'user_id': str(member.user.id),
+                    'total_unread': updated_counts['total_unread'],
+                    'groups': updated_counts['groups'],
+                    'users': updated_counts['users'],
+                    'all_chats': updated_counts['all_chats']
+                })
         
         elif message.message_type == "private":
             broadcast_to_redis('private_message_handler', {
@@ -447,7 +458,16 @@ class MessageViewSet(viewsets.ModelViewSet):
                 'message_type': 'private'
             })
             logger.debug(f"Private message broadcast from {message.sender.username} to {message.recipient.username}")
-
+            
+            # IMPORTANT: Broadcast unread count update to recipient only
+            updated_counts = self._get_unread_counts_for_user(message.recipient)
+            broadcast_to_redis('unread_count_update', {
+                'user_id': str(message.recipient.id),
+                'total_unread': updated_counts['total_unread'],
+                'groups': updated_counts['groups'],
+                'users': updated_counts['users'],
+                'all_chats': updated_counts['all_chats']
+            })
     def destroy(self, request, *args, **kwargs):
         """Delete message and broadcast deletion event in real-time"""
         message = self.get_object()
@@ -462,9 +482,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         logger.info(f"Message {message_id} deleted by {request.user.username}")
         return response
 
+   
     @extend_schema(
         summary="Mark message as read",
-        description="Mark a message as read. Triggers read receipt to sender.",
+        description="Mark a message as read. Persists read receipts to database.",
         tags=MsgTag,
         request=inline_serializer(
             name='MarkReadRequest',
@@ -472,51 +493,283 @@ class MessageViewSet(viewsets.ModelViewSet):
         ),
         responses={200: inline_serializer(
             name='MarkReadResponse',
-            fields={'marked_count': drf_serializers.IntegerField()}
+            fields={
+                'marked_count': drf_serializers.IntegerField(),
+                'read_messages': drf_serializers.ListField(child=drf_serializers.UUIDField())
+            }
         )}
     )
     @action(detail=False, methods=["post"])
     def mark_read(self, request):
-        """Mark messages as read (batch operation)"""
+        """Mark messages as read (batch operation) with persistence and live unread count update"""
         message_ids = request.data.get('message_ids', [])
+        
+        if not message_ids:
+            return Response({"error": "No message IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Get messages that the user has access to
         messages = self.get_queryset().filter(id__in=message_ids)
         
         marked_count = 0
-        for message in messages:
-            # Broadcast read receipt
-            broadcast_to_redis('message_read', {
-                'message_id': str(message.id),
-                'read_by': str(request.user.id),
-                'read_by_username': request.user.username,
-                'timestamp': timezone.now().isoformat()
-            })
-            marked_count += 1
+        read_message_ids = []
         
-        logger.debug(f"User {request.user.username} marked {marked_count} messages as read")
-        return Response({"marked_count": marked_count}, status=status.HTTP_200_OK)
+        for message in messages:
+            # Check if already read
+            already_read = MessageReadReceipt.objects.filter(
+                message=message,
+                user=request.user
+            ).exists()
+            
+            if not already_read:
+                # Create read receipt
+                MessageReadReceipt.objects.create(
+                    message=message,
+                    user=request.user
+                )
+                read_message_ids.append(str(message.id))
+                marked_count += 1
+                
+                # Broadcast read receipt via Redis
+                broadcast_to_redis('message_read', {
+                    'message_id': str(message.id),
+                    'read_by': str(request.user.id),
+                    'read_by_username': request.user.username,
+                    'timestamp': timezone.now().isoformat()
+                })
+        
+        # CRITICAL: Broadcast updated unread counts to this user AFTER marking as read
+        if marked_count > 0:
+            updated_counts = self._get_unread_counts_for_user(request.user)
+            broadcast_to_redis('unread_count_update', {
+                'user_id': str(request.user.id),
+                'total_unread': updated_counts['total_unread'],
+                'groups': updated_counts['groups'],
+                'users': updated_counts['users'],
+                'all_chats': updated_counts['all_chats']
+            })
+            
+            logger.info(f"📊 Unread count update sent to user {request.user.username}: {updated_counts['total_unread']} unread")
+        
+        logger.info(f"User {request.user.username} marked {marked_count} messages as read")
+        return Response({
+            "marked_count": marked_count,
+            "read_messages": read_message_ids
+        }, status=status.HTTP_200_OK)
+
+    # ADD THIS HELPER METHOD
+    def _get_unread_counts_for_user(self, user):
+        """Helper to calculate unread counts for a user"""
+        # Get all messages accessible to user (EXCLUDING messages sent by the user)
+        all_messages = Message.objects.filter(
+            Q(message_type="group", group__groupmember__user=user) |
+            Q(message_type="private", recipient=user)  # Only private messages TO this user
+        ).exclude(
+            sender=user  # CRITICAL: Exclude messages sent by this user
+        ).distinct()
+        
+        # Get messages that have been read by this user
+        read_messages = MessageReadReceipt.objects.filter(
+            user=user
+        ).values_list('message_id', flat=True)
+        
+        # Calculate counts per group
+        group_counts = {}
+        group_messages = all_messages.filter(message_type='group')
+        for group in Group.objects.filter(groupmember__user=user):
+            group_messages_for_group = group_messages.filter(group=group)
+            unread_count = group_messages_for_group.exclude(id__in=read_messages).count()
+            if unread_count > 0:
+                group_counts[str(group.id)] = unread_count
+        
+        # Calculate counts per user (private messages)
+        user_counts = {}
+        # Only get private messages where current user is the RECIPIENT
+        private_messages = all_messages.filter(message_type='private', recipient=user)
+        
+        # Get all users who have sent messages to current user
+        senders = private_messages.values_list('sender_id', flat=True).distinct()
+        
+        for sender_id in senders:
+            if sender_id == user.id:
+                continue
+                
+            # Get unread messages from this sender
+            conversation_messages = private_messages.filter(sender_id=sender_id)
+            unread_count = conversation_messages.exclude(id__in=read_messages).count()
+            
+            if unread_count > 0:
+                user_counts[str(sender_id)] = unread_count
+        
+        total_unread = sum(group_counts.values()) + sum(user_counts.values())
+        all_chats = {**group_counts, **user_counts}
+        
+        return {
+            'total_unread': total_unread,
+            'groups': group_counts,
+            'users': user_counts,
+            'all_chats': all_chats
+        }
 
     @extend_schema(
-        summary="Get unread message count",
-        description="Get count of unread messages for the current user.",
+        summary="Get unread messages",
+        description="Get IDs of unread messages for the current user.",
         tags=MsgTag,
         responses={200: inline_serializer(
-            name='UnreadCountResponse',
-            fields={'unread_count': drf_serializers.IntegerField()}
+            name='UnreadMessagesResponse',
+            fields={
+                'unread_count': drf_serializers.IntegerField(),
+                'unread_message_ids': drf_serializers.ListField(child=drf_serializers.UUIDField())
+            }
         )}
     )
     @action(detail=False, methods=["get"])
-    def unread_count(self, request):
-        """Get unread message count for current user"""
-        # This is a simple implementation
-        # For production, you'd track read status in a separate table
-        unread_count = self.get_queryset().filter(
-            Q(message_type="private", recipient=request.user) |
-            Q(message_type="group")
-        ).count()
+    def unread(self, request):
+        """Get unread message IDs for current user"""
+        # Get all messages accessible to user
+        all_messages = self.get_queryset()
         
-        return Response({"unread_count": unread_count}, status=status.HTTP_200_OK)
+        # Get messages that have been read
+        read_messages = MessageReadReceipt.objects.filter(
+            user=request.user,
+            message__in=all_messages
+        ).values_list('message_id', flat=True)
+        
+        # Find unread messages
+        unread_messages = all_messages.exclude(id__in=read_messages)
+        unread_ids = list(unread_messages.values_list('id', flat=True))
+        
+        return Response({
+            'unread_count': len(unread_ids),
+            'unread_message_ids': unread_ids
+        }, status=status.HTTP_200_OK)
+
+    # In views.py
+    @extend_schema(
+        summary="Get message read receipts",
+        description="Get list of users who have read a specific message.",
+        tags=MsgTag,
+        parameters=[
+            OpenApiParameter(name='message_id', type=OpenApiTypes.UUID, description='Message ID', required=True),
+        ],
+        responses={200: inline_serializer(
+            name='ReadReceiptsResponse',
+            fields={
+                'message_id': drf_serializers.UUIDField(),
+                'readers': drf_serializers.ListField(child=drf_serializers.DictField())
+            }
+        )}
+    )
+    @action(detail=False, methods=["get"], url_path="read-receipts")
+    def read_receipts(self, request):
+        """Get read receipts for a specific message"""
+        message_id = request.query_params.get('message_id')
+        
+        if not message_id:
+            return Response({"error": "message_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            message = Message.objects.get(id=message_id)
+            
+            # Check permission
+            if not self.has_permission_to_view_message(request.user, message):
+                return Response({"error": "You don't have permission to view this message"}, 
+                            status=status.HTTP_403_FORBIDDEN)
+            
+            # Get read receipts
+            receipts = MessageReadReceipt.objects.filter(message=message).select_related('user')
+            
+            readers = [{
+                'user_id': str(receipt.user.id),
+                'username': receipt.user.username,
+                'read_at': receipt.read_at.isoformat()
+            } for receipt in receipts]
+            
+            return Response({
+                'message_id': str(message_id),
+                'readers': readers
+            })
+            
+        except Message.DoesNotExist:
+            return Response({"error": "Message not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    def has_permission_to_view_message(self, user, message):
+        """Check if user can view this message"""
+        if message.message_type == 'group':
+            return GroupMember.objects.filter(user=user, group=message.group).exists()
+        else:
+            return user == message.sender or user == message.recipient
+
+    @extend_schema(
+        summary="Get unread message counts",
+        description="Get unread message counts for all chats (groups and users)",
+        tags=MsgTag,
+        responses={200: inline_serializer(
+            name='UnreadCountsResponse',
+            fields={
+                'total_unread': drf_serializers.IntegerField(),
+                'groups': drf_serializers.DictField(),
+                'users': drf_serializers.DictField(),
+                'all_chats': drf_serializers.DictField()
+            }
+        )}
+    )
+    @action(detail=False, methods=["get"], url_path="unread_counts")
+    def unread_counts(self, request):
+        """Get unread message counts for all chats"""
+        
+        # Get all messages accessible to user EXCLUDING messages sent by user
+        all_messages = Message.objects.filter(
+            Q(message_type="group", group__groupmember__user=request.user) |
+            Q(message_type="private", recipient=request.user)  # Only messages TO this user
+        ).exclude(
+            sender=request.user  # CRITICAL: Exclude messages sent by this user
+        ).distinct()
+        
+        # Get messages that have been read
+        read_messages = MessageReadReceipt.objects.filter(
+            user=request.user
+        ).values_list('message_id', flat=True)
+        
+        # Calculate unread counts per group
+        group_counts = {}
+        group_messages = all_messages.filter(message_type='group')
+        for group in Group.objects.filter(groupmember__user=request.user):
+            group_messages_for_group = group_messages.filter(group=group)
+            unread_count = group_messages_for_group.exclude(id__in=read_messages).count()
+            if unread_count > 0:
+                group_counts[str(group.id)] = unread_count
+        
+        # Calculate unread counts per user (private messages)
+        user_counts = {}
+        # Only get private messages where current user is the RECIPIENT
+        private_messages = all_messages.filter(message_type='private', recipient=request.user)
+        
+        # Get all users who have sent messages to current user
+        senders = private_messages.values_list('sender_id', flat=True).distinct()
+        
+        for sender_id in senders:
+            if sender_id == request.user.id:
+                continue
+                
+            # Get unread messages from this sender
+            conversation_messages = private_messages.filter(sender_id=sender_id)
+            unread_count = conversation_messages.exclude(id__in=read_messages).count()
+            
+            if unread_count > 0:
+                user_counts[str(sender_id)] = unread_count
+        
+        # Calculate total unread
+        total_unread = sum(group_counts.values()) + sum(user_counts.values())
+        
+        # Combine for frontend convenience
+        all_chats = {**group_counts, **user_counts}
+        
+        return Response({
+            'total_unread': total_unread,
+            'groups': group_counts,
+            'users': user_counts,
+            'all_chats': all_chats
+        }, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Send typing indicator",
@@ -562,3 +815,4 @@ class MessageViewSet(viewsets.ModelViewSet):
             })
         
         return Response({"status": "typing indicator sent"}, status=status.HTTP_200_OK)
+    

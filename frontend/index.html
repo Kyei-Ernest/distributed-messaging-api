@@ -144,6 +144,10 @@
                         <div class="avatar" id="current-user-avatar">
                             <span id="current-user-initials">U</span>
                         </div>
+                        <div class="avatar" id="current-user-avatar" style="position: relative;">
+                            <span id="current-user-initials">U</span>
+                            <span id="total-unread-badge" class="badge hidden" style="position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger-color); border-radius: 9px; font-size: 10px;">0</span>
+                        </div>
                         <div class="user-info">
                             <h3 id="current-user-name">User</h3>
                             <div>
@@ -180,52 +184,70 @@
                 </div>
 
                 <div class="sidebar-tabs">
-                    <button class="tab-btn active" data-tab="groups">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        Groups
-                    </button>
-                    <button class="tab-btn" data-tab="users">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        Users
-                    </button>
-                </div>
+            <button class="tab-btn active" data-tab="chats">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Chats
+            </button>
+            <button class="tab-btn" data-tab="groups">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Groups
+            </button>
+            <button class="tab-btn" data-tab="users">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Users
+            </button>
+        </div>
 
-                <div class="sidebar-content">
-                    <!-- Groups Tab -->
-                    <div id="groups-tab" class="tab-content active">
-                        <div class="search-container">
-                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
-                            <button class="btn btn-primary btn-sm" id="create-group-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                New
-                            </button>
-                        </div>
-                        <div id="groups-list" class="list-container">
-                            <div class="loading">Loading groups...</div>
-                        </div>
-                    </div>
+                        <div class="sidebar-content">
+    <!-- Chats Tab (Combined) -->
+    <div id="chats-tab" class="tab-content active">
+        <div class="search-container">
+            <input type="text" id="chat-search" placeholder="Search chats..." class="search-input">
+        </div>
+        <div id="chats-list" class="list-container">
+            <div class="loading">Loading chats...</div>
+        </div>
+    </div>
 
-                    <!-- Users Tab -->
-                    <div id="users-tab" class="tab-content">
-                        <div class="search-container">
-                            <input type="text" id="user-search" placeholder="Search users..." class="search-input">
-                        </div>
-                        <div id="users-list" class="list-container">
-                            <div class="loading">Loading users...</div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Groups Tab -->
+    <div id="groups-tab" class="tab-content">
+        <div class="search-container">
+            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
+            <button class="btn btn-primary btn-sm" id="create-group-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New
+            </button>
+        </div>
+        <div id="groups-list" class="list-container">
+            <div class="loading">Loading groups...</div>
+        </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="users-tab" class="tab-content">
+        <div class="search-container">
+            <input type="text" id="user-search" placeholder="Search users..." class="search-input">
+        </div>
+        <div id="users-list" class="list-container">
+            <div class="loading">Loading users...</div>
+        </div>
+    </div>
+</div>
+
+
             </aside>
 
             <!-- Main Chat Area -->
@@ -483,8 +505,137 @@
         <div class="loading-spinner"></div>
         <p>Loading...</p>
     </div>
+    <!-- Add to index.html before closing body tag -->
 
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-bottom-nav">
+        <div class="nav-items">
+            <button class="mobile-nav-item active" data-action="chats">
+                <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Chats
+            </button>
+            <button class="mobile-nav-item" data-action="groups">
+                <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Groups
+            </button>
+            <button class="mobile-nav-item" data-action="contacts">
+                <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Contacts
+            </button>
+            <button class="mobile-nav-item" data-action="settings">
+                <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Message Actions Sheet (Mobile) -->
+    <div id="message-actions-overlay" class="message-actions-overlay">
+        <div class="message-actions-sheet">
+            <button class="message-action-item" data-action="reply">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 14 4 9 9 4"></polyline>
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                </svg>
+                Reply
+            </button>
+            <button class="message-action-item" data-action="copy">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy Text
+            </button>
+            <button class="message-action-item" data-action="forward">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 14 20 9 15 4"></polyline>
+                    <path d="M4 20v-7a4 4 0 0 1 4-4h12"></path>
+                </svg>
+                Forward
+            </button>
+            <button class="message-action-item danger" data-action="delete">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+            </button>
+            <button class="message-action-item" data-action="cancel">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Reply Container -->
+    <div id="quick-reply-container" class="quick-reply-container">
+        <div class="quick-reply-header">
+            <span>Replying to <span id="quick-reply-to">User</span></span>
+            <button class="btn-icon" id="close-quick-reply">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div id="quick-reply-preview" class="message-bubble" style="margin-bottom: 8px; background: var(--bg-tertiary);">
+            <!-- Reply preview will be inserted here -->
+        </div>
+        <div class="message-form" style="padding: 0;">
+            <textarea 
+                id="quick-reply-input" 
+                placeholder="Type a reply..." 
+                rows="2"
+                style="flex: 1; background: var(--bg-secondary); padding: 8px 12px; border-radius: var(--radius-md);"
+            ></textarea>
+            <button type="button" class="btn btn-primary btn-icon" id="send-quick-reply">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Voice Recording Overlay -->
+    <div id="voice-recording-overlay" class="voice-recording-overlay hidden">
+        <div class="voice-recording-animation">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+        </div>
+        <div class="recording-timer">0:00</div>
+        <p style="color: white; text-align: center;">Slide up to cancel • Release to send</p>
+    </div>
+
+    <!-- Network Status Bar -->
+    <div id="network-status" class="network-status">
+        <span id="network-status-text">No internet connection</span>
+    </div>
+
+    <!-- Swipe Hint -->
+    <div id="swipe-hint" class="swipe-hint">
+        Swipe right to go back
+    </div>
     <!-- Scripts -->
+
     <script src="config.js"></script>
     <script src="api.js"></script>
     <script src="websocket.js"></script>

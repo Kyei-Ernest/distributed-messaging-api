@@ -253,15 +253,21 @@ const UI = {
         div.dataset.type = 'user';
         
         const avatarColor = this.generateAvatarColor(user.username);
+        const isOnline = user.is_online || false;
         
         div.innerHTML = `
             <div class="avatar" style="background: ${avatarColor}">
                 <span>${this.getInitials(user.username)}</span>
-                <span class="status-badge ${user.is_online ? 'online' : 'offline'}"></span>
+                <span class="status-badge ${isOnline ? 'online' : 'offline'}"></span>
             </div>
             <div class="list-item-content">
-                <div class="list-item-title">${this.escapeHtml(user.username)}</div>
-                <div class="list-item-subtitle">${this.escapeHtml(user.email || '')}</div>
+                <div class="list-item-title">
+                    ${this.escapeHtml(user.username)}
+                    ${isOnline ? '<span style="color: var(--success-color); font-size: 11px; margin-left: 4px;">● online</span>' : ''}
+                </div>
+                <div class="list-item-subtitle">
+                    ${this.escapeHtml(user.email || '')}
+                </div>
             </div>
         `;
         
@@ -354,36 +360,40 @@ const UI = {
         return formatted;
     },
 
-    getMessageStatus(message) {
-        if (message.read_by && message.read_by.length > 0) {
-            return `
-                <span class="message-status read" title="Read">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </span>
-            `;
-        } else if (message.delivered) {
-            return `
-                <span class="message-status delivered" title="Delivered">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </span>
-            `;
-        } else {
-            return `
-                <span class="message-status sent" title="Sent">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                    </svg>
-                </span>
-            `;
-        }
-    },
+    // Update UI.js createMessage method
+getMessageStatus(message) {
+    if (message.read_by && message.read_by.length > 0) {
+        const lastRead = message.read_by[message.read_by.length - 1];
+        const readTime = lastRead.timestamp ? UI.formatTime(lastRead.timestamp) : 'Read';
+        
+        return `
+            <span class="message-status read" title="Read at ${readTime}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </span>
+        `;
+    } else if (message.delivered) {
+        return `
+            <span class="message-status delivered" title="Delivered">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </span>
+        `;
+    } else {
+        return `
+            <span class="message-status sent" title="Sent">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+            </span>
+        `;
+    }
+},
 
     updateMessageStatus(messageId, status) {
         const message = document.querySelector(`[data-message-id="${messageId}"]`);

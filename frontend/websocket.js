@@ -7,7 +7,7 @@ class WebSocketClient {
         this.reconnectDelay = 3000;
         this.listeners = {};
         this.isConnected = false;
-        this.token = null; // Store token as instance variable
+        this.token = null;
     }
 
     connect(token) {
@@ -16,7 +16,7 @@ class WebSocketClient {
             return;
         }
         
-        this.token = token; // Save token for reconnection
+        this.token = token;
 
         try {
             this.ws = new WebSocket(`${this.url}?token=${token}`);
@@ -38,7 +38,6 @@ class WebSocketClient {
 
         this.ws.onmessage = (event) => {
             try {
-                // Handle potential multiple JSON objects in one message
                 const messages = event.data.trim().split('\n').filter(line => line.trim());
                 
                 messages.forEach(msgStr => {
@@ -72,6 +71,10 @@ class WebSocketClient {
 
     handleMessage(data) {
         const { type, data: payload } = data;
+        
+        console.log('📨 WebSocket received:', type, payload);
+        
+        // Emit the event with proper type
         this.emit(type, payload);
     }
 
@@ -88,13 +91,13 @@ class WebSocketClient {
         console.log(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         
         setTimeout(() => {
-            this.connect(this.token); // Use stored token
+            this.connect(this.token);
         }, this.reconnectDelay);
     }
 
     send(type, data = {}) {
         if (!this.isConnected) {
-            console.warn('WebSocket not connected');
+            console.warn('WebSocket not connected, cannot send:', type);
             return;
         }
 
@@ -104,6 +107,7 @@ class WebSocketClient {
             timestamp: new Date().toISOString()
         };
 
+        console.log('📤 Sending WebSocket message:', type, data);
         this.ws.send(JSON.stringify(message));
     }
 

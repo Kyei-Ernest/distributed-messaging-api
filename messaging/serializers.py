@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Group, GroupMember, Message
+from .models import Group, GroupMember, Message, MessageReadReceipt
 
 User = get_user_model()
 
@@ -103,6 +103,11 @@ class MessageSerializer(serializers.ModelSerializer):
     )
 
     group_name = serializers.SerializerMethodField()
+    
+    # NEW: Read status fields
+    is_read = serializers.SerializerMethodField()
+    read_by = serializers.SerializerMethodField()
+    read_by_current_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -115,12 +120,75 @@ class MessageSerializer(serializers.ModelSerializer):
             'recipient',
             'recipient_id',
             'content',
-            'created_at'
+            'created_at',
+            'is_read',              # NEW
+            'read_by',              # NEW
+            'read_by_current_user'  # NEW
         ]
         read_only_fields = ['id', 'sender', 'recipient', 'created_at']
 
     def get_group_name(self, obj):
         return obj.group.name if obj.group else None
+    
+    def get_is_read(self, obj):
+        """Check if this message has been read by the current user"""
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+            
+        # For private messages: current user is recipient
+        if obj.message_type == "private" and obj.recipient == request.user:
+            return MessageReadReceipt.objects.filter(
+                message=obj,
+                user=request.user
+            ).exists()
+        
+        # For group messages: check if current user has read it
+        elif obj.message_type == "group":
+            return MessageReadReceipt.objects.filter(
+                message=obj,
+                user=request.user
+            ).exists()
+        
+        # For sent messages: not applicable (sender can't "read" their own message)
+        return False
+    
+    def get_read_by(self, obj):
+        """Get list of users who have read this message"""
+        request = self.context.get('request')
+        
+        # For private messages: show if recipient has read it
+        if obj.message_type == "private":
+            if request and request.user == obj.sender:
+                receipts = MessageReadReceipt.objects.filter(message=obj)
+                return [{
+                    'user_id': str(receipt.user.id),
+                    'username': receipt.user.username,
+                    'read_at': receipt.read_at.isoformat()
+                } for receipt in receipts.select_related('user')]
+            return []
+        
+        # For group messages: show all readers (except sender)
+        elif obj.message_type == "group":
+            receipts = MessageReadReceipt.objects.filter(message=obj)
+            return [{
+                'user_id': str(receipt.user.id),
+                'username': receipt.user.username,
+                'read_at': receipt.read_at.isoformat()
+            } for receipt in receipts.select_related('user')]
+        
+        return []
+    
+    def get_read_by_current_user(self, obj):
+        """Helper method for frontend to easily check if current user read this"""
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+            
+        return MessageReadReceipt.objects.filter(
+            message=obj,
+            user=request.user
+        ).exists()
 
     def validate(self, attrs):
         message_type = attrs.get('message_type')

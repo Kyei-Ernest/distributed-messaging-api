@@ -111,3 +111,33 @@ class Message(models.Model):
 
         if self.message_type == "private" and self.sender == self.recipient:
             raise ValidationError("Cannot send message to yourself.")
+        
+# Add to models.py, after Message model
+class MessageReadReceipt(models.Model):
+    """Track which users have read which messages"""
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    message = models.ForeignKey(
+        Message, 
+        on_delete=models.CASCADE, 
+        related_name="read_receipts"
+    )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="message_reads"
+    )
+    read_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ("message", "user")
+        indexes = [
+            models.Index(fields=["message", "user"]),
+            models.Index(fields=["user", "read_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} read message {self.message.id}"
