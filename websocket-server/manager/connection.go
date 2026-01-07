@@ -246,7 +246,7 @@ func (cm *ConnectionManager) HandleRedisMessage(channel string, payload []byte) 
 	switch eventType {
 	case "group_message":
 		cm.handleGroupMessage(message)
-	case "private_message_handler":
+	case "private_message", "private_message_handler":
 		cm.handlePrivateMessage(message)
 	case "user_joined", "user_left", "user_removed":
 		cm.handleUserEvent(message)
@@ -291,7 +291,7 @@ func (cm *ConnectionManager) handleUserStatus(message map[string]interface{}) {
 
 	// Broadcast to all connected clients
 	cm.broadcastMessage(msgBytes)
-	
+
 	userID, _ := data["user_id"].(string)
 	status, _ := data["status"].(string)
 	log.Printf("✅ User status broadcasted: %s is %s", userID, status)
@@ -332,6 +332,10 @@ func (cm *ConnectionManager) handleOnlineUsersRequest(message map[string]interfa
 	log.Printf("✅ Online users list sent to %s (%d users)", requesterID, len(onlineUsers))
 }
 
+// manager/connection.go - MODIFICATIONS for E2EE pass-through
+// Only showing the modified sections
+
+// ✅ UPDATE handleGroupMessage to pass through encryption fields:
 func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -345,9 +349,32 @@ func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) 
 		return
 	}
 
+	// ✅ Extract encryption fields if present
+	isEncrypted, _ := data["is_encrypted"].(bool)
+
+	outData := map[string]interface{}{
+		"message_id":      data["message_id"],
+		"sender_id":       data["sender_id"],
+		"sender_username": data["sender_username"],
+		"group_id":        groupID,
+		"group_name":      data["group_name"],
+		"timestamp":       data["timestamp"],
+		"message_type":    "group",
+		"is_encrypted":    isEncrypted,
+	}
+
+	// ✅ Pass through encrypted or plain content
+	if isEncrypted {
+		outData["encrypted_content"] = data["encrypted_content"]
+		outData["encrypted_keys"] = data["encrypted_keys"]
+		outData["iv"] = data["iv"]
+	} else {
+		outData["content"] = data["content"]
+	}
+
 	outMsg := models.OutgoingMessage{
 		Type:      models.EventGroupMessage,
-		Data:      data,
+		Data:      outData,
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
@@ -356,11 +383,17 @@ func (cm *ConnectionManager) handleGroupMessage(message map[string]interface{}) 
 		log.Printf("Failed to marshal group message: %v", err)
 		return
 	}
-	
+
 	cm.BroadcastToGroup(groupID, msgBytes)
-	log.Printf("✅ Group message broadcasted to group %s", groupID)
+
+	if isEncrypted {
+		log.Printf("✅ Encrypted group message broadcasted to group %s", groupID)
+	} else {
+		log.Printf("✅ Group message broadcasted to group %s", groupID)
+	}
 }
 
+// ✅ UPDATE handlePrivateMessage to pass through encryption fields:
 func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
 	if !ok {
@@ -370,10 +403,32 @@ func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}
 
 	senderID, _ := data["sender_id"].(string)
 	recipientID, _ := data["recipient_id"].(string)
+	isEncrypted, _ := data["is_encrypted"].(bool)
+
+	outData := map[string]interface{}{
+		"message_id":         data["message_id"],
+		"sender_id":          senderID,
+		"sender_username":    data["sender_username"],
+		"recipient_id":       recipientID,
+		"recipient_username": data["recipient_username"],
+		"timestamp":          data["timestamp"],
+		"message_type":       "private",
+		"is_encrypted":       isEncrypted,
+	}
+
+	// ✅ Pass through encrypted or plain content
+	if isEncrypted {
+		outData["encrypted_content"] = data["encrypted_content"]
+		outData["encrypted_key"] = data["encrypted_key"]
+		outData["encrypted_key_self"] = data["encrypted_key_self"]
+		outData["iv"] = data["iv"]
+	} else {
+		outData["content"] = data["content"]
+	}
 
 	outMsg := models.OutgoingMessage{
 		Type:      models.EventPrivateMessage,
-		Data:      data,
+		Data:      outData,
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
@@ -382,11 +437,18 @@ func (cm *ConnectionManager) handlePrivateMessage(message map[string]interface{}
 		log.Printf("Failed to marshal private message: %v", err)
 		return
 	}
-	
+
 	cm.SendToUser(senderID, msgBytes)
 	cm.SendToUser(recipientID, msgBytes)
-	log.Printf("✅ Private message sent from %s to %s", senderID, recipientID)
+
+	if isEncrypted {
+		log.Printf("✅ Encrypted private message sent from %s to %s", senderID, recipientID)
+	} else {
+		log.Printf("✅ Private message sent from %s to %s", senderID, recipientID)
+	}
 }
+
+// No other changes needed in Go server - it just passes through the encrypted data!
 
 func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 	data, ok := message["data"].(map[string]interface{})
@@ -424,7 +486,7 @@ func (cm *ConnectionManager) handleUserEvent(message map[string]interface{}) {
 		log.Printf("Failed to marshal user event: %v", err)
 		return
 	}
-	
+
 	cm.BroadcastToGroup(groupID, msgBytes)
 	log.Printf("✅ User event (%s) broadcasted to group %s", event, groupID)
 }
@@ -453,9 +515,9 @@ func (cm *ConnectionManager) handleMemberPromoted(message map[string]interface{}
 		log.Printf("Failed to marshal member promoted event: %v", err)
 		return
 	}
-	
+
 	cm.BroadcastToGroup(groupID, msgBytes)
-	
+
 	username, _ := data["username"].(string)
 	log.Printf("✅ Member promotion broadcasted: %s in group %s", username, groupID)
 }
@@ -671,32 +733,91 @@ func (c *Client) handleIncomingMessage(message []byte) {
 	switch wsMsg.Type {
 	case models.EventPing:
 		c.handlePing()
-		
+
 	case models.EventTypingIndicator:
 		c.handleTypingIndicator(wsMsg.Data)
-		
+
 	case "subscribe_group":
 		if groupID, ok := wsMsg.Data["group_id"].(string); ok {
 			c.Manager.SubscribeToGroup(c, groupID)
 			log.Printf("✅ %s subscribed to group %s", c.Username, groupID)
 		}
-		
+
 	case "unsubscribe_group":
 		if groupID, ok := wsMsg.Data["group_id"].(string); ok {
 			c.Manager.UnsubscribeFromGroup(c, groupID)
 			log.Printf("✅ %s unsubscribed from group %s", c.Username, groupID)
 		}
-		
+
 	case "mark_read":
 		c.handleMarkRead(wsMsg.Data)
-		
+
 	case "request_online_users":
 		// ✅ FIXED: Added this case
 		c.handleRequestOnlineUsers()
-		
+	case "load_older_messages":
+		c.handleLoadOlderMessages(wsMsg.Data)
+
+	case "private_message":
+		c.handlePrivateMessageFromClient(wsMsg.Data)
+
+	case "group_message":
+		c.handleGroupMessageFromClient(wsMsg.Data)
+
 	default:
 		log.Printf("Unknown message type from %s: %s", c.Username, wsMsg.Type)
 	}
+}
+
+func (c *Client) handlePrivateMessageFromClient(data map[string]interface{}) {
+	recipientID, _ := data["recipient_id"].(string)
+	content, _ := data["content"].(string)
+
+	outData := map[string]interface{}{
+		"message_id":      "tmp-" + time.Now().Format("20060102150405"),
+		"sender_id":       c.ID,
+		"sender_username": c.Username,
+		"recipient_id":    recipientID,
+		"content":         content,
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"message_type":    "private",
+	}
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventPrivateMessage,
+		Data:      outData,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, _ := json.Marshal(outMsg)
+	c.Manager.SendToUser(c.ID, msgBytes)
+	c.Manager.SendToUser(recipientID, msgBytes)
+	log.Printf("⚡ Direct Private Message from %s to %s", c.Username, recipientID)
+}
+
+func (c *Client) handleGroupMessageFromClient(data map[string]interface{}) {
+	groupID, _ := data["group_id"].(string)
+	content, _ := data["content"].(string)
+
+	outData := map[string]interface{}{
+		"message_id":      "tmp-" + time.Now().Format("20060102150405"),
+		"sender_id":       c.ID,
+		"sender_username": c.Username,
+		"group_id":        groupID,
+		"content":         content,
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"message_type":    "group",
+	}
+
+	outMsg := models.OutgoingMessage{
+		Type:      models.EventGroupMessage,
+		Data:      outData,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	msgBytes, _ := json.Marshal(outMsg)
+	c.Manager.BroadcastToGroup(groupID, msgBytes)
+	log.Printf("⚡ Direct Group Message from %s to group %s", c.Username, groupID)
 }
 
 func (c *Client) handlePing() {
@@ -725,7 +846,7 @@ func (c *Client) handleTypingIndicator(data map[string]interface{}) {
 		msgBytes, _ := json.Marshal(indicator)
 		c.Manager.BroadcastToGroup(groupID, msgBytes)
 		log.Printf("✅ Typing indicator from %s in group %s", c.Username, groupID)
-		
+
 	} else if recipientID, ok := data["recipient_id"].(string); ok {
 		indicator := models.OutgoingMessage{
 			Type: models.EventTypingIndicator,
@@ -796,4 +917,26 @@ func (c *Client) SendMessage(msg models.OutgoingMessage) {
 	default:
 		log.Printf("Client %s send buffer full", c.Username)
 	}
+}
+
+func (c *Client) handleLoadOlderMessages(data map[string]interface{}) {
+	groupID, _ := data["group_id"].(string)
+	page, _ := data["page"].(float64)
+	pageSize, _ := data["page_size"].(float64)
+	messageType, _ := data["message_type"].(string)
+
+	response := models.OutgoingMessage{
+		Type: "older_messages_response",
+		Data: map[string]interface{}{
+			"group_id":     groupID,
+			"page":         int(page),
+			"page_size":    int(pageSize), // ✅ Added page_size to response
+			"message_type": messageType,
+			"timestamp":    time.Now().Format(time.RFC3339),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	c.SendMessage(response)
+	log.Printf("✅ Older messages request from %s for page %d (page size: %d)", c.Username, int(page), int(pageSize))
 }

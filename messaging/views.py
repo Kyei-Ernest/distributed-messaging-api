@@ -10,13 +10,14 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, inline_serializer
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers as drf_serializers
+from .pagination import MessagePagination  # Import custom pagination
 
 import redis
 import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from .models import Group, GroupMember, Message, MessageReadReceipt
+from .models import Group, GroupMember, Message, MessageReadReceipt, UserProfile, MessageReaction
 from .serializers import GroupSerializer, GroupMemberSerializer, MessageSerializer
 from .permissions import IsGroupMember, IsGroupAdmin, IsGroupCreator, IsMessageSender, CanAccessMessage
 import logging
@@ -330,6 +331,11 @@ class GroupViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         summary="List messages",
         description=(
+            "Returns paginated messages (20 per page).\n\n"
+            "Pagination:\n"
+            "- Use `page` parameter (e.g., ?page=2)\n"
+            "- Use `page_size` to adjust (max 100)\n"
+            "- Check `next` field for more pages\n\n"
             "Returns messages the authenticated user is allowed to access.\n\n"
             "Access rules:\n"
             "- Group messages from groups where the user is a member\n"
@@ -377,6 +383,9 @@ class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     http_method_names = ['get', 'post', 'delete', 'head', 'options']
 
+    # ✅ ADD THIS LINE - Use custom pagination
+    pagination_class = MessagePagination
+
     def get_permissions(self):
         if self.action == 'destroy':
             return [permissions.IsAuthenticated(), IsMessageSender()]
@@ -385,6 +394,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
+        """
+        This method already returns the correct queryset.
+        Pagination will be applied automatically by DRF.
+        """
         user = self.request.user
         queryset = Message.objects.filter(
             Q(message_type="group", group__groupmember__user=user)
@@ -415,7 +428,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         if since:
             queryset = queryset.filter(created_at__gte=since)
 
+        # ✅ IMPORTANT: Order by newest first (latest messages first)
+        # This is correct for infinite scroll from bottom to top
         return queryset.order_by("-created_at")
+    
 
     def perform_create(self, serializer):
         """Save message and broadcast in real-time to all online recipients"""
@@ -423,19 +439,41 @@ class MessageViewSet(viewsets.ModelViewSet):
         
         # Broadcast via Redis for Go WebSocket server
         if message.message_type == "group":
-            broadcast_to_redis('group_message', {
+            # ✅ UPDATED: Include encryption fields in broadcast
+            broadcast_data = {
                 'message_id': str(message.id),
                 'sender_id': str(message.sender.id),
                 'sender_username': message.sender.username,
-                'content': message.content,
                 'timestamp': message.created_at.isoformat(),
                 'message_type': 'group',
                 'group_id': str(message.group.id),
                 'group_name': message.group.name
-            })
+            }
+
+            # ✅ Add parent message info if reply
+            if message.parent_message:
+                broadcast_data['parent_message'] = {
+                    'id': str(message.parent_message.id),
+                    'sender_username': message.parent_message.sender.username,
+                    'content': message.parent_message.content,
+                    'is_encrypted': message.parent_message.is_encrypted
+                }
+            
+            # ✅ Add encryption fields if encrypted
+            if message.is_encrypted:
+                broadcast_data.update({
+                    'is_encrypted': True,
+                    'encrypted_content': message.encrypted_content,
+                    'encrypted_keys': message.encrypted_keys,
+                    'iv': message.iv
+                })
+            else:
+                broadcast_data['content'] = message.content
+            
+            broadcast_to_redis('group_message', broadcast_data)
             logger.debug(f"Group message broadcast to group {message.group.name}")
             
-            # IMPORTANT: Broadcast unread count update to all group members (except sender)
+            # Broadcast unread count updates
             for member in message.group.groupmember_set.exclude(user=self.request.user):
                 updated_counts = self._get_unread_counts_for_user(member.user)
                 broadcast_to_redis('unread_count_update', {
@@ -447,19 +485,42 @@ class MessageViewSet(viewsets.ModelViewSet):
                 })
         
         elif message.message_type == "private":
-            broadcast_to_redis('private_message_handler', {
+            # ✅ UPDATED: Include encryption fields in broadcast
+            broadcast_data = {
                 'message_id': str(message.id),
                 'sender_id': str(message.sender.id),
                 'sender_username': message.sender.username,
                 'recipient_id': str(message.recipient.id),
                 'recipient_username': message.recipient.username,
-                'content': message.content,
                 'timestamp': message.created_at.isoformat(),
                 'message_type': 'private'
-            })
+            }
+
+            # ✅ Add parent message info if reply
+            if message.parent_message:
+                broadcast_data['parent_message'] = {
+                    'id': str(message.parent_message.id),
+                    'sender_username': message.parent_message.sender.username,
+                    'content': message.parent_message.content,
+                    'is_encrypted': message.parent_message.is_encrypted
+                }
+            
+            # ✅ Add encryption fields if encrypted
+            if message.is_encrypted:
+                broadcast_data.update({
+                    'is_encrypted': True,
+                    'encrypted_content': message.encrypted_content,
+                    'encrypted_key': message.encrypted_key,
+                    'encrypted_key_self': message.encrypted_key_self,
+                    'iv': message.iv
+                })
+            else:
+                broadcast_data['content'] = message.content
+            
+            broadcast_to_redis('private_message_handler', broadcast_data)
             logger.debug(f"Private message broadcast from {message.sender.username} to {message.recipient.username}")
             
-            # IMPORTANT: Broadcast unread count update to recipient only
+            # Broadcast unread count update to recipient
             updated_counts = self._get_unread_counts_for_user(message.recipient)
             broadcast_to_redis('unread_count_update', {
                 'user_id': str(message.recipient.id),
@@ -468,6 +529,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                 'users': updated_counts['users'],
                 'all_chats': updated_counts['all_chats']
             })
+
     def destroy(self, request, *args, **kwargs):
         """Delete message and broadcast deletion event in real-time"""
         message = self.get_object()
@@ -555,6 +617,53 @@ class MessageViewSet(viewsets.ModelViewSet):
             "marked_count": marked_count,
             "read_messages": read_message_ids
         }, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="React to a message",
+        description="Toggle emoji reaction on a message.",
+        tags=MsgTag,
+        request=inline_serializer(
+            name='ReactionRequest',
+            fields={'emoji': drf_serializers.CharField()}
+        ),
+        responses={200: inline_serializer(
+            name='ReactionResponse',
+            fields={'status': drf_serializers.CharField(), 'action': drf_serializers.CharField()}
+        )}
+    )
+    @action(detail=True, methods=["post"])
+    def react(self, request, pk=None):
+        message = self.get_object()
+        emoji = request.data.get('emoji')
+
+        if not emoji:
+            return Response({"error": "Emoji is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Toggle reaction
+        reaction, created = MessageReaction.objects.get_or_create(
+            message=message,
+            user=request.user,
+            emoji=emoji
+        )
+
+        if not created:
+            # If exists, remove it (toggle off)
+            reaction.delete()
+            action = 'removed'
+        else:
+            action = 'added'
+
+        # Broadcast reaction update
+        broadcast_to_redis('message_reaction', {
+            'message_id': str(message.id),
+            'user_id': str(request.user.id),
+            'username': request.user.username,
+            'emoji': emoji,
+            'action': action,
+            'timestamp': timezone.now().isoformat()
+        })
+        
+        return Response({"status": "success", "action": action}, status=status.HTTP_200_OK)
 
     # ADD THIS HELPER METHOD
     def _get_unread_counts_for_user(self, user):
@@ -816,3 +925,281 @@ class MessageViewSet(viewsets.ModelViewSet):
         
         return Response({"status": "typing indicator sent"}, status=status.HTTP_200_OK)
     
+
+from django.db.models import Q, Max, Count, OuterRef, Subquery, F
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+@extend_schema(
+    summary="Get user's chat list",
+    description=(
+        "Returns all conversations (groups + private chats) where the user has ≥1 message.\n\n"
+        "Features:\n"
+        "- Includes last message preview\n"
+        "- Ordered by most recent message first\n"
+        "- Shows unread counts per chat\n"
+        "- Supports both group and private chats"
+    ),
+    tags=["Chats"],
+    responses={200: inline_serializer(
+        name='ChatListResponse',
+        fields={
+            'chats': drf_serializers.ListField(),
+            'count': drf_serializers.IntegerField()
+        }
+    )}
+)
+@api_view(['GET'])
+def get_chat_list(request):
+    """
+    Get comprehensive chat list for authenticated user.
+    Combines group chats and private conversations with last message metadata.
+    """
+    user = request.user
+    chats = []
+    
+    # ===================================================================
+    # PART 1: GROUP CHATS
+    # ===================================================================
+    
+    # Get groups user is member of
+    user_groups = Group.objects.filter(groupmember__user=user)
+    
+    # For each group, get last message details using subquery
+    last_group_message = Message.objects.filter(
+        message_type='group',
+        group=OuterRef('pk')
+    ).order_by('-created_at')
+    
+    groups_with_messages = user_groups.annotate(
+        last_message_content=Subquery(last_group_message.values('content')[:1]),
+        last_message_time=Subquery(last_group_message.values('created_at')[:1]),
+        last_message_sender=Subquery(last_group_message.values('sender__username')[:1])
+    ).filter(
+        last_message_time__isnull=False  # Only groups with at least 1 message
+    )
+    
+    for group in groups_with_messages:
+        # Get unread count for this group
+        group_messages = Message.objects.filter(
+            message_type='group',
+            group=group
+        ).exclude(sender=user)
+        
+        read_message_ids = MessageReadReceipt.objects.filter(
+            user=user,
+            message__in=group_messages
+        ).values_list('message_id', flat=True)
+        
+        unread_count = group_messages.exclude(id__in=read_message_ids).count()
+        
+        chats.append({
+            'id': str(group.id),
+            'type': 'group',
+            'name': group.name,
+            'last_message': group.last_message_content,
+            'last_message_time': group.last_message_time.isoformat() if group.last_message_time else None,
+            'last_message_sender': group.last_message_sender,
+            'unread_count': unread_count,
+            'member_count': group.groupmember_set.count(),
+            'is_admin': group.groupmember_set.filter(user=user, is_admin=True).exists(),
+            'avatar_color': generate_avatar_color(group.name)  # Helper function
+        })
+    
+    # ===================================================================
+    # PART 2: PRIVATE CHATS
+    # ===================================================================
+    
+    # Get all private messages involving the user
+    private_messages = Message.objects.filter(
+        Q(message_type='private', sender=user) |
+        Q(message_type='private', recipient=user)
+    ).select_related('sender', 'recipient')
+    
+    # Find unique conversation partners
+    # (other user in each conversation)
+    conversation_partners = set()
+    for msg in private_messages:
+        other_user_id = msg.recipient_id if msg.sender_id == user.id else msg.sender_id
+        conversation_partners.add(other_user_id)
+    
+    # For each partner, get last message
+    for partner_id in conversation_partners:
+        conversation_messages = Message.objects.filter(
+            Q(message_type='private', sender=user, recipient_id=partner_id) |
+            Q(message_type='private', sender_id=partner_id, recipient=user)
+        ).order_by('-created_at')
+        
+        last_msg = conversation_messages.first()
+        if not last_msg:
+            continue
+        
+        # Get partner details
+        partner = User.objects.get(id=partner_id)
+        
+        # Calculate unread count (only messages FROM partner TO user)
+        unread_messages = conversation_messages.filter(
+            sender_id=partner_id,
+            recipient=user
+        )
+        
+        read_message_ids = MessageReadReceipt.objects.filter(
+            user=user,
+            message__in=unread_messages
+        ).values_list('message_id', flat=True)
+        
+        unread_count = unread_messages.exclude(id__in=read_message_ids).count()
+        
+        chats.append({
+            'id': str(partner.id),
+            'type': 'private',
+            'name': partner.username,
+            'last_message': last_msg.content,
+            'last_message_time': last_msg.created_at.isoformat(),
+            'last_message_sender': last_msg.sender.username,
+            'unread_count': unread_count,
+            'email': partner.email,
+            'is_online': is_user_online(partner.id),  # Helper function
+            'avatar_color': generate_avatar_color(partner.username)
+        })
+    
+    # ===================================================================
+    # SORT BY MOST RECENT
+    # ===================================================================
+    chats.sort(key=lambda x: x['last_message_time'] or '', reverse=True)
+    
+    return Response({
+        'chats': chats,
+        'count': len(chats)
+    }, status=status.HTTP_200_OK)
+
+
+# Helper functions
+def generate_avatar_color(name):
+    """Generate consistent color for avatar based on name hash"""
+    colors = [
+        '#4f46e5', '#7c3aed', '#db2777', '#dc2626',
+        '#ea580c', '#d97706', '#65a30d', '#16a34a',
+        '#059669', '#0891b2', '#0284c7', '#2563eb'
+    ]
+    hash_value = sum(ord(c) for c in name)
+    return colors[hash_value % len(colors)]
+
+
+def is_user_online(user_id):
+    """
+    Check if user is online via WebSocket connection manager.
+    This would query your Redis/Go WebSocket server.
+    """
+    import redis
+    import json
+    
+    try:
+        redis_client = redis.from_url(settings.CACHES['default']['LOCATION'])
+        # Query your online users set or WebSocket connection state
+        # This is a placeholder - implement based on your WebSocket architecture
+        return False  # Default to offline
+    except:
+        return False
+    
+from rest_framework.viewsets import GenericViewSet
+
+@extend_schema_view(
+    upload_public_key=extend_schema(
+        summary="Upload public key",
+        description="Upload your public key for E2E encryption",
+        tags=["Encryption"]
+    ),
+    get_public_key=extend_schema(
+        summary="Get user's public key",
+        description="Fetch a user's public key for encryption",
+        tags=["Encryption"]
+    ),
+)
+class UserPublicKeyViewSet(GenericViewSet):
+    """
+    ViewSet for managing user public encryption keys.
+    
+    Endpoints:
+    - POST /user-keys/me/public-key/ - Upload your public key
+    - GET /user-keys/{user_id}/public-key/ - Get another user's public key
+    """
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=False, methods=['post'], url_path='me/public-key')
+    def upload_public_key(self, request):
+        """Upload current user's public encryption key"""
+        public_key = request.data.get('public_key')
+        
+        if not public_key:
+            return Response(
+                {'error': 'public_key field is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        request.user.public_key = public_key
+        request.user.save()
+        
+        logger.info(f"✅ Public key uploaded for user {request.user.username}")
+        
+        return Response({
+            'status': 'success',
+            'message': 'Public key uploaded successfully'
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['get'], url_path='public-key')
+    def get_public_key(self, request, pk=None):
+        """Get a specific user's public encryption key"""
+        user = self.get_object()
+        
+        if not user.public_key:
+            return Response(
+                {'error': 'User has not enabled encryption'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        logger.info(f"📤 Public key requested for user {user.username}")
+        
+        return Response({
+            'public_key': user.public_key,
+            'user_id': str(user.id),
+            'username': user.username
+        }, status=status.HTTP_200_OK)
+    
+
+# ✅ NEW: Add endpoint to get public keys in bulk (for group encryption)
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+@extend_schema(
+    summary="Get public keys for multiple users",
+    description="Fetch public keys for a list of user IDs (for group message encryption)",
+    tags=["Encryption"],
+    request=inline_serializer(
+        name='BulkPublicKeysRequest',
+        fields={'user_ids': drf_serializers.ListField(child=drf_serializers.UUIDField())}
+    ),
+    responses={200: inline_serializer(
+        name='BulkPublicKeysResponse',
+        fields={'public_keys': drf_serializers.DictField()}
+    )}
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_bulk_public_keys(request):
+    """Get public keys for multiple users at once"""
+    user_ids = request.data.get('user_ids', [])
+    
+    if not user_ids:
+        return Response({'error': 'user_ids required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    users = User.objects.filter(id__in=user_ids, public_key__isnull=False)
+    
+    public_keys = {
+        str(user.id): user.public_key
+        for user in users
+    }
+    
+    return Response({'public_keys': public_keys}, status=status.HTTP_200_OK)

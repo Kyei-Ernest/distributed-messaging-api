@@ -1,85 +1,43 @@
+# messaging/serializers.py - UPDATED with E2EE fields
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Group, GroupMember, Message, MessageReadReceipt
+from .models import Group, GroupMember, Message, MessageReadReceipt, MessageReaction
 
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
+    has_encryption = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'has_encryption']
         read_only_fields = ['id']
+    
+    def get_has_encryption(self, obj):
+        """Check if user has uploaded public key"""
+        return bool(obj.public_key)
 
 
-class GroupMemberSerializer(serializers.ModelSerializer):
+class ReactionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    user_id = serializers.UUIDField(write_only=True, required=False)
-    group_name = serializers.CharField(source='group.name', read_only=True)
-
+    
     class Meta:
-        model = GroupMember
-        fields = ['id', 'user', 'user_id', 'group', 'group_name', 'joined_at', 'is_admin']
-        read_only_fields = ['id', 'joined_at', 'group']  # <-- make 'group' read-only for GET
+        model = MessageReaction
+        fields = ['id', 'user', 'emoji', 'created_at']
 
 
-class GroupSerializer(serializers.ModelSerializer):
-    """Serializer for Group"""
-    created_by = UserSerializer(read_only=True)
-    member_count = serializers.SerializerMethodField()
-    is_member = serializers.SerializerMethodField()
-    is_admin = serializers.SerializerMethodField()
-
+class SimpleMessageSerializer(serializers.ModelSerializer):
+    """Simplified serializer for parent messages to avoid recursion"""
+    sender = UserSerializer(read_only=True)
+    
     class Meta:
-        model = Group
-        fields = [
-            'id', 'name', 'description', 'created_by', 
-            'member_count', 'is_member', 'is_admin', 'created_at'
-        ]
-        read_only_fields = ['id', 'created_by', 'created_at']
+        model = Message
+        fields = ['id', 'content', 'sender', 'created_at', 'message_type', 'is_encrypted']
 
-    def get_member_count(self, obj):
-        """Get total number of members"""
-        return obj.members.count()
 
-    def get_is_member(self, obj):
-        """Check if current user is a member"""
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return GroupMember.objects.filter(
-                user=request.user, 
-                group=obj
-            ).exists()
-        return False
-
-    def get_is_admin(self, obj):
-        """Check if current user is an admin"""
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            membership = GroupMember.objects.filter(
-                user=request.user, 
-                group=obj
-            ).first()
-            return membership.is_admin if membership else False
-        return False
-
-    def create(self, validated_data):
-        """Create group and add creator as admin member"""
-        request = self.context.get('request')
-        
-        # Create the group (created_by is set in view's perform_create)
-        group = super().create(validated_data)
-        
-        # Automatically add creator as admin member
-        GroupMember.objects.create(
-            user=request.user,
-            group=group,
-            is_admin=True  # Creator is admin
-        )
-        
-        return group
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -104,10 +62,31 @@ class MessageSerializer(serializers.ModelSerializer):
 
     group_name = serializers.SerializerMethodField()
     
-    # NEW: Read status fields
+    # Read status fields
     is_read = serializers.SerializerMethodField()
     read_by = serializers.SerializerMethodField()
     read_by_current_user = serializers.SerializerMethodField()
+    
+    # ✅ NEW: Encryption fields
+    is_encrypted = serializers.BooleanField(default=False)
+    encrypted_content = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    encrypted_key = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    encrypted_key_self = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    encrypted_keys = serializers.JSONField(required=False, allow_null=True)
+    iv = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    # ✅ NEW: Reply and Reaction fields
+    parent_message_id = serializers.PrimaryKeyRelatedField(
+        source='parent_message',
+        queryset=Message.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    parent_message = SimpleMessageSerializer(read_only=True)
+    reactions = ReactionSerializer(many=True, read_only=True)
+
+
 
     class Meta:
         model = Message
@@ -121,9 +100,21 @@ class MessageSerializer(serializers.ModelSerializer):
             'recipient_id',
             'content',
             'created_at',
-            'is_read',              # NEW
-            'read_by',              # NEW
-            'read_by_current_user'  # NEW
+            'is_read',
+            'read_by',
+            'read_by_current_user',
+            # ✅ Encryption fields
+            'is_encrypted',
+            'encrypted_content',
+            'encrypted_key',
+            'encrypted_key_self',
+            'encrypted_keys',
+            'iv',
+            # ✅ New fields
+            'parent_message',
+            'parent_message_id',
+            'reactions'
+
         ]
         read_only_fields = ['id', 'sender', 'recipient', 'created_at']
 
@@ -131,33 +122,27 @@ class MessageSerializer(serializers.ModelSerializer):
         return obj.group.name if obj.group else None
     
     def get_is_read(self, obj):
-        """Check if this message has been read by the current user"""
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
             return False
             
-        # For private messages: current user is recipient
         if obj.message_type == "private" and obj.recipient == request.user:
             return MessageReadReceipt.objects.filter(
                 message=obj,
                 user=request.user
             ).exists()
         
-        # For group messages: check if current user has read it
         elif obj.message_type == "group":
             return MessageReadReceipt.objects.filter(
                 message=obj,
                 user=request.user
             ).exists()
         
-        # For sent messages: not applicable (sender can't "read" their own message)
         return False
     
     def get_read_by(self, obj):
-        """Get list of users who have read this message"""
         request = self.context.get('request')
         
-        # For private messages: show if recipient has read it
         if obj.message_type == "private":
             if request and request.user == obj.sender:
                 receipts = MessageReadReceipt.objects.filter(message=obj)
@@ -168,7 +153,6 @@ class MessageSerializer(serializers.ModelSerializer):
                 } for receipt in receipts.select_related('user')]
             return []
         
-        # For group messages: show all readers (except sender)
         elif obj.message_type == "group":
             receipts = MessageReadReceipt.objects.filter(message=obj)
             return [{
@@ -180,7 +164,6 @@ class MessageSerializer(serializers.ModelSerializer):
         return []
     
     def get_read_by_current_user(self, obj):
-        """Helper method for frontend to easily check if current user read this"""
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
             return False
@@ -192,20 +175,58 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         message_type = attrs.get('message_type')
-        recipient = attrs.get('recipient')  # IMPORTANT: comes from recipient_id
+        recipient = attrs.get('recipient')
         group = attrs.get('group')
         request = self.context.get('request')
+        is_encrypted = attrs.get('is_encrypted', False)
 
-        # DEBUG LOGS
-        print("=== DEBUG MessageSerializer.validate ===")
-        print(f"Message type: {message_type}")
-        print(f"Request user ID: {request.user.id if request else 'No request'}")
-        print(f"Request user username: {request.user.username if request else 'No request'}")
-        print(f"Recipient from attrs: {recipient}")
-        print(f"Recipient ID: {recipient.id if recipient else 'No recipient'}")
-        print(f"Recipient username: {recipient.username if recipient else 'No recipient'}")
+        # ✅ NEW: Make content optional for encrypted messages
+        if is_encrypted:
+            # For encrypted messages, content can be empty
+            if not attrs.get('content'):
+                attrs['content'] = ''  # Set empty string if not provided
+        else:
+            # For plain messages, content is required
+            if not attrs.get('content'):
+                raise serializers.ValidationError({
+                    'content': 'This field is required for non-encrypted messages.'
+                })
+            
+        # ✅ Validate encryption fields
+        if is_encrypted:
+            if message_type == 'group':
+                if not attrs.get('encrypted_content'):
+                    raise serializers.ValidationError({
+                        'encrypted_content': 'Encrypted group messages must have encrypted_content.'
+                    })
+                if not attrs.get('encrypted_keys'):
+                    raise serializers.ValidationError({
+                        'encrypted_keys': 'Encrypted group messages must have encrypted_keys.'
+                    })
+                if not attrs.get('iv'):
+                    raise serializers.ValidationError({
+                        'iv': 'Encrypted messages must have an IV.'
+                    })
+            
+            elif message_type == 'private':
+                if not attrs.get('encrypted_content'):
+                    raise serializers.ValidationError({
+                        'encrypted_content': 'Encrypted private messages must have encrypted_content.'
+                    })
+                if not attrs.get('encrypted_key'):
+                    raise serializers.ValidationError({
+                        'encrypted_key': 'Encrypted private messages must have encrypted_key.'
+                    })
+                if not attrs.get('encrypted_key_self'):
+                    raise serializers.ValidationError({
+                        'encrypted_key_self': 'Encrypted private messages must have encrypted_key_self.'
+                    })
+                if not attrs.get('iv'):
+                    raise serializers.ValidationError({
+                        'iv': 'Encrypted messages must have an IV.'
+                    })
 
-        # Validate group messages
+        # Existing validation
         if message_type == 'group':
             if not group:
                 raise serializers.ValidationError({
@@ -225,7 +246,6 @@ class MessageSerializer(serializers.ModelSerializer):
                     'recipient_id': 'Group messages cannot have a recipient.'
                 })
 
-        # Validate private messages
         if message_type == 'private':
             if not recipient:
                 raise serializers.ValidationError({
@@ -245,23 +265,70 @@ class MessageSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """
-        recipient is already resolved by DRF because of
-        source='recipient' on recipient_id
-        """
         return super().create(validated_data)
 
-class MessageListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for message lists"""
-    sender_username = serializers.CharField(source='sender.username', read_only=True)
-    recipient_username = serializers.CharField(source='recipient.username', read_only=True)
+
+class GroupMemberSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    user_id = serializers.UUIDField(write_only=True, required=False)
     group_name = serializers.CharField(source='group.name', read_only=True)
 
     class Meta:
-        model = Message
+        model = GroupMember
+        fields = ['id', 'user', 'user_id', 'group', 'group_name', 'joined_at', 'is_admin']
+        read_only_fields = ['id', 'joined_at', 'group']
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    member_count = serializers.SerializerMethodField()
+    is_member = serializers.SerializerMethodField()
+    is_admin = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Group
         fields = [
-            'id', 'message_type', 'group', 'group_name',
-            'sender_username', 'recipient_username',
-            'content', 'created_at'
+            'id', 'name', 'description', 'created_by', 
+            'member_count', 'is_member', 'is_admin', 'created_at'
         ]
-        read_only_fields = fields
+        read_only_fields = ['id', 'created_by', 'created_at']
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_is_member(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return GroupMember.objects.filter(
+                user=request.user, 
+                group=obj
+            ).exists()
+        return False
+
+    def get_is_admin(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            membership = GroupMember.objects.filter(
+                user=request.user, 
+                group=obj
+            ).first()
+            return membership.is_admin if membership else False
+        return False
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        group = super().create(validated_data)
+        
+        GroupMember.objects.create(
+            user=request.user,
+            group=group,
+            is_admin=True
+        )
+        
+        return group
+
+    def validate_name(self, value):
+        """Check if group with this name already exists"""
+        if Group.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError(f"Group with name '{value}' already exists")
+        return value

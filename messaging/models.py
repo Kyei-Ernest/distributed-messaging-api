@@ -79,14 +79,38 @@ class Message(models.Model):
 
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    # Encryption fields
+    is_encrypted = models.BooleanField(default=False)
+    encrypted_content = models.TextField(null=True, blank=True)
+    encrypted_key = models.TextField(null=True, blank=True)  # For recipient
+    encrypted_key_self = models.TextField(null=True, blank=True)  # For sender
+    encrypted_keys = models.JSONField(null=True, blank=True)  # For group messages
+    iv = models.CharField(max_length=255, null=True, blank=True)
+    
+    # ✅ NEW: Reply functionality
+    parent_message = models.ForeignKey(
+        'self', 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL, 
+        related_name='replies'
+    )
+
 
     class Meta:
-        ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["group", "created_at"]),
-            models.Index(fields=["recipient", "created_at"]),
+            # Critical for chat list queries
+            models.Index(fields=['message_type', 'group', '-created_at']),
+            models.Index(fields=['message_type', 'sender', 'recipient', '-created_at']),
+            
+            # For filtering user's accessible messages
+            models.Index(fields=['sender', '-created_at']),
+            models.Index(fields=['recipient', '-created_at']),
         ]
-
+        ordering = ['-created_at']  # Default ordering
+    
+    def __str__(self):
+        return f"{self.sender.username}: {self.content[:50]}"
 
 
 
@@ -141,3 +165,37 @@ class MessageReadReceipt(models.Model):
 
     def __str__(self):
         return f"{self.user.username} read message {self.message.id}"
+    
+# Add public key storage to User model
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    public_key = models.TextField(null=True, blank=True)
+
+
+class MessageReaction(models.Model):
+    """Store emoji reactions to messages"""
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    message = models.ForeignKey(
+        Message, 
+        on_delete=models.CASCADE, 
+        related_name="reactions"
+    )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="message_reactions"
+    )
+    emoji = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("message", "user", "emoji")
+        indexes = [
+            models.Index(fields=["message", "emoji"]),
+        ]
+
+

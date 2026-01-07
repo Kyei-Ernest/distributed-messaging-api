@@ -9,7 +9,7 @@ class User(AbstractUser):
         editable=False
     )
 
-    
+    public_key = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.username

@@ -36,7 +36,7 @@ def test_redis_publishing():
         {
             "name": "Private Message",
             "data": {
-                "type": "private_message_handler",
+                "type": "private_message",
                 "data": {
                     "message_id": str(uuid.uuid4()),
                     "sender_id": user1_id,
