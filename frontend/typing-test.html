@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Typing Indicator Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #typing-indicator {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 0 24px;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #typing-indicator.hidden {
+            display: none !important;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4f46e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 14px 18px;
+            background: #f3f4f6;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-width: 60px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0) scale(0.8);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: translateY(-4px) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Typing Indicator Test</h1>
+
+    <div class="test-section">
+        <h2>Visual Test</h2>
+        <p>This is what the typing indicator should look like:</p>
+
+        <div id="typing-indicator">
+            <div class="avatar">
+                <span>JD</span>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Interactive Test</h2>
+        <button onclick="showIndicator()">Show Typing</button>
+        <button onclick="hideIndicator()">Hide Typing</button>
+
+        <div id="test-indicator" class="hidden">
+            <div class="avatar">
+                <span>TS</span>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Instructions</h2>
+        <p>To test in your app, open the browser console and run:</p>
+        <code>
+            <pre>
+// Test showing typing indicator
+app.handleTypingIndicator({
+    user_id: 123,
+    username: 'Test User',
+    is_typing: true,
+    group_id: null  // or set to group ID if testing group chat
+});
+
+// Test hiding typing indicator
+app.handleTypingIndicator({
+    user_id: 123,
+    username: 'Test User',
+    is_typing: false,
+    group_id: null
+});
+            </pre>
+        </code>
+    </div>
+
+    <script>
+        function showIndicator() {
+            document.getElementById('test-indicator').classList.remove('hidden');
+        }
+
+        function hideIndicator() {
+            document.getElementById('test-indicator').classList.add('hidden');
+        }
+    </script>
+</body>
+
+</html>

@@ -32,10 +32,10 @@ class ThemeManager {
 
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        
+
         const sunIcon = document.querySelector('.sun-icon');
         const moonIcon = document.querySelector('.moon-icon');
-        
+
         if (theme === 'dark') {
             sunIcon?.classList.add('hidden');
             moonIcon?.classList.remove('hidden');
@@ -53,17 +53,17 @@ class PasswordStrength {
     constructor(inputId) {
         this.input = document.getElementById(inputId);
         if (!this.input) return;
-        
+
         this.strengthBar = this.input.closest('.form-group')?.querySelector('.strength-fill');
         this.strengthText = this.input.closest('.form-group')?.querySelector('.strength-text');
-        
+
         this.input.addEventListener('input', () => this.checkStrength());
     }
 
     checkStrength() {
         const password = this.input.value;
         const strength = this.calculateStrength(password);
-        
+
         if (this.strengthBar) {
             this.strengthBar.className = 'strength-fill';
             if (strength.score >= 4) {
@@ -83,13 +83,13 @@ class PasswordStrength {
 
     calculateStrength(password) {
         let score = 0;
-        
+
         if (password.length >= 8) score++;
         if (password.length >= 12) score++;
         if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
         if (/\d/.test(password)) score++;
         if (/[^a-zA-Z0-9]/.test(password)) score++;
-        
+
         return { score };
     }
 }
@@ -109,7 +109,7 @@ class PasswordToggle {
         const input = document.getElementById(targetId);
         const eyeIcon = btn.querySelector('.eye-icon');
         const eyeOffIcon = btn.querySelector('.eye-off-icon');
-        
+
         if (input.type === 'password') {
             input.type = 'text';
             eyeIcon.classList.add('hidden');
@@ -131,20 +131,20 @@ class EmojiPicker {
         this.grid = document.getElementById('emoji-grid');
         this.input = document.getElementById('message-input');
         this.button = document.getElementById('emoji-btn');
-        
+
         if (!this.picker || !this.button) return;
-        
+
         this.emojis = {
-            smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋'],
-            people: ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍'],
-            nature: ['🌸', '🌺', '🌻', '🌷', '🌹', '🥀', '💐', '🌾', '🌲', '🌳', '🌴', '🌵', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🪴', '🌍'],
-            food: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧈', '🧇', '🥞', '🧈', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌮', '🌯', '🥙', '🥪'],
-            activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳'],
-            travel: ['✈️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥', '🛳', '⛴', '🚢', '⚓', '🪝', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺', '🗿'],
-            objects: ['💡', '🔦', '🏮', '🪔', '📱', '💻', '⌨️', '🖥', '🖨', '🖱', '🖲', '🕹', '🗜', '💾', '💿', '📀', '📼', '📷', '📸', '📹'],
-            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️']
+            smileys: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬'],
+            people: ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁', '👅'],
+            nature: ['🌸', '🌺', '🌻', '🌷', '🌹', '🥀', '💐', '🌾', '🌲', '🌳', '🌴', '🌵', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🪴', '🌍', '🌎', '🌏', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌙', '🌛', '🌜', '⭐', '🌟', '✨', '💫', '⚡', '☄️', '💥', '🔥', '🌈', '☀️', '🌤', '⛅', '🌥', '☁️', '🌦', '🌧', '⛈'],
+            food: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧈', '🧇', '🥞', '🍖', '🍗', '🥩', '🥓', '🌮', '🌯', '🥙', '🥪', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥐', '🥯', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃'],
+            activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸', '🥌', '🎿', '⛷', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏊', '🚴', '🚵', '🎯', '🎮'],
+            travel: ['✈️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥', '🛳', '⛴', '🚢', '⚓', '🪝', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺', '🗿', '🗽', '🗼', '⛲', '⛺', '🏕', '🏖', '🏜', '🏝', '🏞', '🏟', '🏛', '🏗', '🧱', '🏘', '🏚', '🏠', '🏡', '🏢', '🏣', '🏤', '🏥', '🏦', '🏨', '🏩', '🏪', '🏫', '🏬', '🏭', '🏯', '🏰'],
+            objects: ['💡', '🔦', '🏮', '🪔', '📱', '💻', '⌨️', '🖥', '🖨', '🖱', '🖲', '🕹', '🗜', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽', '🎞', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙', '🎚', '🎛', '🧭', '⏱', '⏲', '⏰', '🕰', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯', '🪔', '🧯', '🛢', '💸', '💵'],
+            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳']
         };
-        
+
         this.init();
     }
 
@@ -153,19 +153,19 @@ class EmojiPicker {
             e.stopPropagation();
             this.toggle();
         });
-        
+
         // Close on outside click
         document.addEventListener('click', (e) => {
             if (!this.picker.contains(e.target) && e.target !== this.button) {
                 this.close();
             }
         });
-        
+
         // Category buttons
         document.querySelectorAll('.emoji-category').forEach(btn => {
             btn.addEventListener('click', () => this.showCategory(btn.dataset.category));
         });
-        
+
         // Load default category
         this.showCategory('smileys');
     }
@@ -184,7 +184,7 @@ class EmojiPicker {
     position() {
         const buttonRect = this.button.getBoundingClientRect();
         const pickerRect = this.picker.getBoundingClientRect();
-        
+
         if (UI.isMobile()) {
             // Center on mobile, above message input
             this.picker.style.bottom = '80px';
@@ -203,12 +203,12 @@ class EmojiPicker {
         document.querySelectorAll('.emoji-category').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.category === category);
         });
-        
+
         // Render emojis
         this.grid.innerHTML = this.emojis[category]
             .map(emoji => `<button class="emoji-item" type="button">${emoji}</button>`)
             .join('');
-        
+
         // Add click handlers
         this.grid.querySelectorAll('.emoji-item').forEach(btn => {
             btn.addEventListener('click', () => this.insertEmoji(btn.textContent));
@@ -220,11 +220,11 @@ class EmojiPicker {
         const start = input.selectionStart;
         const end = input.selectionEnd;
         const text = input.value;
-        
+
         input.value = text.substring(0, start) + emoji + text.substring(end);
         input.selectionStart = input.selectionEnd = start + emoji.length;
         input.focus();
-        
+
         this.close();
     }
 }
@@ -236,7 +236,7 @@ class ContextMenu {
     constructor() {
         this.menu = document.getElementById('context-menu');
         if (!this.menu) return;
-        
+
         this.currentTarget = null;
         this.init();
     }
@@ -252,10 +252,10 @@ class ContextMenu {
                 this.hide();
             }
         });
-        
+
         // Hide on click outside
         document.addEventListener('click', () => this.hide());
-        
+
         // Handle actions
         this.menu.querySelectorAll('.context-menu-item').forEach(item => {
             item.addEventListener('click', (e) => {
@@ -270,7 +270,7 @@ class ContextMenu {
         this.menu.style.left = `${x}px`;
         this.menu.style.top = `${y}px`;
         this.menu.classList.remove('hidden');
-        
+
         // Ensure menu stays in viewport
         const rect = this.menu.getBoundingClientRect();
         if (rect.right > window.innerWidth) {
@@ -288,10 +288,10 @@ class ContextMenu {
 
     handleAction(action) {
         if (!this.currentTarget) return;
-        
+
         const messageId = this.currentTarget.dataset.messageId;
         const messageText = this.currentTarget.querySelector('.message-bubble')?.textContent;
-        
+
         switch (action) {
             case 'reply':
                 this.triggerReply(messageId, messageText);
@@ -306,7 +306,7 @@ class ContextMenu {
                 this.triggerDelete(messageId);
                 break;
         }
-        
+
         this.hide();
     }
 
@@ -347,20 +347,20 @@ class FileUploadHandler {
         this.attachBtn = document.getElementById('attach-btn');
         this.previewArea = document.getElementById('file-preview-area');
         this.previewList = document.getElementById('file-preview-list');
-        
+
         if (!this.fileInput) return;
-        
+
         this.files = [];
         this.init();
     }
 
     init() {
         this.attachBtn?.addEventListener('click', () => this.fileInput.click());
-        
+
         this.fileInput.addEventListener('change', (e) => {
             this.handleFiles(Array.from(e.target.files));
         });
-        
+
         // Drag and drop
         const container = document.getElementById('messages-container');
         if (container) {
@@ -368,11 +368,11 @@ class FileUploadHandler {
                 e.preventDefault();
                 container.classList.add('drag-over');
             });
-            
+
             container.addEventListener('dragleave', () => {
                 container.classList.remove('drag-over');
             });
-            
+
             container.addEventListener('drop', (e) => {
                 e.preventDefault();
                 container.classList.remove('drag-over');
@@ -406,7 +406,7 @@ class FileUploadHandler {
                 </div>
             `;
         }).join('');
-        
+
         // Add remove handlers
         this.previewList.querySelectorAll('.remove-file').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -470,7 +470,7 @@ class MessageInputResize {
     constructor(inputId) {
         this.input = document.getElementById(inputId);
         if (!this.input) return;
-        
+
         this.input.addEventListener('input', () => this.resize());
         // Also resize on paste
         this.input.addEventListener('paste', () => {
@@ -482,7 +482,7 @@ class MessageInputResize {
         this.input.style.height = 'auto';
         const newHeight = Math.min(this.input.scrollHeight, 120);
         this.input.style.height = newHeight + 'px';
-        
+
         // Adjust parent container if needed
         const form = this.input.closest('.message-form');
         if (form) {
@@ -498,9 +498,9 @@ class ScrollManager {
     constructor(containerId, btnId) {
         this.container = document.getElementById(containerId);
         this.btn = document.getElementById(btnId);
-        
+
         if (!this.container || !this.btn) return;
-        
+
         this.init();
     }
 
@@ -511,7 +511,7 @@ class ScrollManager {
 
     checkScroll() {
         const isAtBottom = this.container.scrollHeight - this.container.scrollTop - this.container.clientHeight < 100;
-        
+
         if (isAtBottom) {
             this.btn.classList.add('hidden');
         } else {
@@ -539,9 +539,9 @@ class ImageViewer {
         this.viewer = document.getElementById('image-viewer');
         this.img = document.getElementById('image-viewer-img');
         this.closeBtn = document.getElementById('close-image-viewer');
-        
+
         if (!this.viewer) return;
-        
+
         this.init();
     }
 
@@ -589,12 +589,12 @@ class NotificationManager {
                 badge: '/badge.png',
                 ...options
             });
-            
+
             notification.onclick = () => {
                 window.focus();
                 notification.close();
             };
-            
+
             return notification;
         }
     }
@@ -605,7 +605,7 @@ class NotificationManager {
             tag: message.id,
             icon: '/icon.png'
         };
-        
+
         return this.show(`New message from ${message.sender_username}`, options);
     }
 }
@@ -627,7 +627,7 @@ class SettingsManager {
                 this.switchTab(tabName);
             });
         });
-        
+
         // Open settings modal
         document.getElementById('settings-btn')?.addEventListener('click', () => {
             document.getElementById('settings-modal').classList.add('show');
@@ -639,7 +639,7 @@ class SettingsManager {
         document.querySelectorAll('.settings-tab').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.tab === tabName);
         });
-        
+
         // Update active panel
         document.querySelectorAll('.settings-panel').forEach(panel => {
             panel.classList.toggle('active', panel.id === `${tabName}-panel`);
@@ -657,7 +657,7 @@ class SettingsManager {
             readReceipts: true,
             typingIndicator: true
         };
-        
+
         const saved = localStorage.getItem('user_settings');
         return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     }
@@ -711,7 +711,7 @@ class VoiceMessageRecorder {
     addVoiceButton() {
         const messageForm = document.getElementById('message-form');
         if (!messageForm) return;
-        
+
         const voiceBtn = document.createElement('button');
         voiceBtn.type = 'button';
         voiceBtn.className = 'btn-icon';
@@ -725,15 +725,15 @@ class VoiceMessageRecorder {
                 <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
         `;
-        
+
         messageForm.insertBefore(voiceBtn, messageForm.querySelector('#message-input'));
-        
+
         voiceBtn.addEventListener('mousedown', () => this.startRecording());
         voiceBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             this.startRecording();
         });
-        
+
         document.addEventListener('mouseup', () => this.stopRecording());
         document.addEventListener('touchend', () => this.stopRecording());
     }
@@ -744,21 +744,21 @@ class VoiceMessageRecorder {
             this.recorder = new MediaRecorder(stream);
             this.audioChunks = [];
             this.isRecording = true;
-            
+
             this.recorder.ondataavailable = (e) => {
                 this.audioChunks.push(e.data);
             };
-            
+
             this.recorder.onstop = async () => {
                 const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                 await this.sendVoiceMessage(audioBlob);
                 stream.getTracks().forEach(track => track.stop());
             };
-            
+
             this.recorder.start();
             this.startTimer();
             this.showRecordingUI();
-            
+
         } catch (error) {
             console.error('Error accessing microphone:', error);
             UI.showToast('Microphone access denied', 'error');
@@ -798,7 +798,7 @@ class VoiceMessageRecorder {
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
                 const base64Audio = reader.result;
-                
+
                 // Send via WebSocket
                 ws.send('voice_message', {
                     audio: base64Audio,
@@ -807,7 +807,7 @@ class VoiceMessageRecorder {
                     group_id: app.currentChat?.type === 'group' ? app.currentChat.id : null,
                     recipient_id: app.currentChat?.type === 'private' ? app.currentChat.id : null
                 });
-                
+
                 UI.showToast('Voice message sent', 'success');
             };
         } catch (error) {
@@ -836,15 +836,15 @@ class MessageReactions {
         picker.innerHTML = this.reactions.map(reaction => `
             <button class="reaction-option" data-reaction="${reaction}">${reaction}</button>
         `).join('');
-        
+
         // Position near message
         const messageRect = message.getBoundingClientRect();
         picker.style.position = 'fixed';
         picker.style.left = `${messageRect.left}px`;
         picker.style.top = `${messageRect.top - 50}px`;
-        
+
         document.body.appendChild(picker);
-        
+
         // Add click handlers
         picker.querySelectorAll('.reaction-option').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -852,7 +852,7 @@ class MessageReactions {
                 picker.remove();
             });
         });
-        
+
         // Remove picker on outside click
         setTimeout(() => {
             document.addEventListener('click', () => picker.remove(), { once: true });
@@ -865,7 +865,7 @@ class MessageReactions {
                 message_id: messageId,
                 reaction: reaction
             });
-            
+
             // Update UI immediately
             this.updateMessageReactionUI(messageId, reaction);
         } catch (error) {
@@ -876,14 +876,14 @@ class MessageReactions {
     updateMessageReactionUI(messageId, reaction) {
         const message = document.querySelector(`[data-message-id="${messageId}"]`);
         if (!message) return;
-        
+
         let reactionContainer = message.querySelector('.message-reactions');
         if (!reactionContainer) {
             reactionContainer = document.createElement('div');
             reactionContainer.className = 'message-reactions';
             message.appendChild(reactionContainer);
         }
-        
+
         // Add or update reaction
         const existingReaction = reactionContainer.querySelector(`[data-reaction="${reaction}"]`);
         if (existingReaction) {
@@ -918,7 +918,7 @@ class MessageScheduler {
     addScheduleButton() {
         const messageForm = document.getElementById('message-form');
         if (!messageForm) return;
-        
+
         const scheduleBtn = document.createElement('button');
         scheduleBtn.type = 'button';
         scheduleBtn.className = 'btn-icon';
@@ -930,9 +930,9 @@ class MessageScheduler {
                 <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
         `;
-        
+
         messageForm.insertBefore(scheduleBtn, messageForm.querySelector('#send-btn'));
-        
+
         scheduleBtn.addEventListener('click', () => {
             this.showScheduleDialog();
         });
@@ -958,13 +958,13 @@ class MessageScheduler {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(dialog);
-        
+
         document.getElementById('cancel-schedule').addEventListener('click', () => {
             dialog.remove();
         });
-        
+
         document.getElementById('confirm-schedule').addEventListener('click', () => {
             this.scheduleMessage();
             dialog.remove();
@@ -977,16 +977,16 @@ class MessageScheduler {
             UI.showToast('Enter a message to schedule', 'warning');
             return;
         }
-        
+
         const date = document.getElementById('schedule-date').value;
         const time = document.getElementById('schedule-time').value;
         const scheduledTime = new Date(`${date}T${time}`);
-        
+
         if (scheduledTime <= new Date()) {
             UI.showToast('Schedule time must be in the future', 'warning');
             return;
         }
-        
+
         const scheduledMessage = {
             id: Date.now(),
             content: content,
@@ -995,10 +995,10 @@ class MessageScheduler {
             chatId: app.currentChat.id,
             status: 'scheduled'
         };
-        
+
         this.scheduledMessages.push(scheduledMessage);
         this.saveScheduledMessages();
-        
+
         UI.showToast(`Message scheduled for ${scheduledTime.toLocaleString()}`, 'success');
         document.getElementById('message-input').value = '';
     }
@@ -1023,13 +1023,13 @@ class MessageScheduler {
                 content: message.content,
                 message_type: message.chatType
             };
-            
+
             if (message.chatType === 'group') {
                 messageData.group = message.chatId;
             } else {
                 messageData.recipient_id = message.chatId;
             }
-            
+
             await api.sendMessage(messageData);
             UI.showToast('Scheduled message sent', 'success');
         } catch (error) {
@@ -1068,13 +1068,13 @@ class MessageTranslator {
     async translateMessage(messageId, targetLang = 'en') {
         const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
         if (!messageElement) return;
-        
+
         const messageContent = messageElement.querySelector('.message-bubble');
         const originalText = messageContent.textContent;
-        
+
         try {
             const translatedText = await this.callTranslationAPI(originalText, targetLang);
-            
+
             // Show translation
             const translationDiv = document.createElement('div');
             translationDiv.className = 'message-translation';
@@ -1090,9 +1090,9 @@ class MessageTranslator {
                 </div>
                 <div class="translation-text">${translatedText}</div>
             `;
-            
+
             messageContent.parentNode.insertBefore(translationDiv, messageContent.nextSibling);
-            
+
         } catch (error) {
             console.error('Translation error:', error);
             UI.showToast('Translation failed', 'error');
@@ -1120,14 +1120,14 @@ class ChatBackup {
     async exportChat(chatId, chatType) {
         try {
             UI.showLoadingOverlay('Exporting chat...');
-            
-            const filters = chatType === 'group' ? 
-                { group: chatId, message_type: 'group' } : 
+
+            const filters = chatType === 'group' ?
+                { group: chatId, message_type: 'group' } :
                 { message_type: 'private' };
-            
+
             const response = await api.getMessages(filters);
             const messages = response.results || response;
-            
+
             // Filter for private chat if needed
             let chatMessages = messages;
             if (chatType === 'private') {
@@ -1138,7 +1138,7 @@ class ChatBackup {
                     return (senderId === otherUserId || recipientId === otherUserId);
                 });
             }
-            
+
             // Format for export
             const exportData = {
                 chatInfo: {
@@ -1155,21 +1155,21 @@ class ChatBackup {
                     type: msg.message_type
                 }))
             };
-            
+
             // Create and download JSON file
             const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
             const exportFileDefaultName = `chat_${chatType}_${chatId}_${Date.now()}.json`;
-            
+
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
-            
+
             UI.hideLoadingOverlay();
             UI.showToast('Chat exported successfully', 'success');
-            
+
         } catch (error) {
             console.error('Export error:', error);
             UI.hideLoadingOverlay();
@@ -1180,14 +1180,14 @@ class ChatBackup {
     async exportAllChats() {
         try {
             UI.showLoadingOverlay('Exporting all chats...');
-            
+
             // Get all messages
             const response = await api.getMessages();
             const allMessages = response.results || response;
-            
+
             // Organize by chat
             const chats = {};
-            
+
             allMessages.forEach(msg => {
                 let chatKey;
                 if (msg.message_type === 'group') {
@@ -1197,14 +1197,14 @@ class ChatBackup {
                     const userIds = [msg.sender_id, msg.recipient_id].sort();
                     chatKey = `private_${userIds.join('_')}`;
                 }
-                
+
                 if (!chats[chatKey]) {
                     chats[chatKey] = {
                         type: msg.message_type,
                         messages: []
                     };
                 }
-                
+
                 chats[chatKey].messages.push({
                     id: msg.id,
                     sender: msg.sender_username || msg.sender?.username,
@@ -1213,28 +1213,28 @@ class ChatBackup {
                     type: msg.message_type
                 });
             });
-            
+
             const exportData = {
                 exportDate: new Date().toISOString(),
                 totalChats: Object.keys(chats).length,
                 totalMessages: allMessages.length,
                 chats: chats
             };
-            
+
             // Create and download JSON file
             const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
             const exportFileDefaultName = `all_chats_backup_${Date.now()}.json`;
-            
+
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
-            
+
             UI.hideLoadingOverlay();
             UI.showToast('All chats exported successfully', 'success');
-            
+
         } catch (error) {
             console.error('Export error:', error);
             UI.hideLoadingOverlay();
@@ -1288,11 +1288,11 @@ class ChatThemes {
 
     applyTheme(themeName) {
         const theme = this.themes[themeName] || this.themes.default;
-        
+
         Object.entries(theme).forEach(([property, value]) => {
             document.documentElement.style.setProperty(property, value);
         });
-        
+
         localStorage.setItem('chat_theme', themeName);
     }
 
@@ -1305,7 +1305,7 @@ class ChatThemes {
         // Add to settings panel
         const settingsPanel = document.getElementById('appearance-panel');
         if (!settingsPanel) return;
-        
+
         const themeSection = document.createElement('div');
         themeSection.className = 'settings-section';
         themeSection.innerHTML = `
@@ -1319,14 +1319,14 @@ class ChatThemes {
                 `).join('')}
             </div>
         `;
-        
+
         settingsPanel.appendChild(themeSection);
-        
+
         themeSection.querySelectorAll('.theme-option').forEach(btn => {
             btn.addEventListener('click', () => {
                 const themeName = btn.dataset.theme;
                 this.applyTheme(themeName);
-                
+
                 // Update active state
                 themeSection.querySelectorAll('.theme-option').forEach(b => {
                     b.classList.remove('active');

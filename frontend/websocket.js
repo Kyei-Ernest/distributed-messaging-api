@@ -15,7 +15,7 @@ class WebSocketClient {
             console.error('No authentication token provided');
             return;
         }
-        
+
         this.token = token;
 
         try {
@@ -39,7 +39,7 @@ class WebSocketClient {
         this.ws.onmessage = (event) => {
             try {
                 const messages = event.data.trim().split('\n').filter(line => line.trim());
-                
+
                 messages.forEach(msgStr => {
                     try {
                         const data = JSON.parse(msgStr);
@@ -71,9 +71,9 @@ class WebSocketClient {
 
     handleMessage(data) {
         const { type, data: payload } = data;
-        
+
         console.log('📨 WebSocket received:', type, payload);
-        
+
         // Emit the event with proper type
         this.emit(type, payload);
     }
@@ -87,9 +87,9 @@ class WebSocketClient {
 
         this.reconnectAttempts++;
         this.updateConnectionStatus('reconnecting');
-        
+
         console.log(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        
+
         setTimeout(() => {
             this.connect(this.token);
         }, this.reconnectDelay);
@@ -119,6 +119,14 @@ class WebSocketClient {
         this.send('unsubscribe_group', { group_id: groupId });
     }
 
+    sendPrivateMessage(recipientId, content) {
+        this.send('private_message', { recipient_id: recipientId, content });
+    }
+
+    sendGroupMessage(groupId, content) {
+        this.send('group_message', { group_id: groupId, content });
+    }
+
     sendTypingIndicator(groupId, isTyping) {
         this.send('typing_indicator', { group_id: groupId, is_typing: isTyping });
     }
@@ -136,7 +144,7 @@ class WebSocketClient {
 
     off(event, callback) {
         if (!this.listeners[event]) return;
-        
+
         if (callback) {
             this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
         } else {
@@ -152,9 +160,9 @@ class WebSocketClient {
     updateConnectionStatus(status) {
         const statusElement = document.getElementById('connection-status');
         const statusMessage = statusElement.querySelector('.status-message');
-        
+
         statusElement.className = 'connection-status ' + status;
-        
+
         switch (status) {
             case 'connected':
                 statusMessage.textContent = 'Connected';

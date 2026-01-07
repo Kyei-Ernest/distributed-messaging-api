@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Button Test - Distributed Messaging</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        code {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔧 Button Functionality Test</h1>
+
+    <div class="test-section">
+        <h3>Instructions</h3>
+        <p>Open your app with the browser console (F12). This page will help you test button functionality:</p>
+        <ol>
+            <li>Check for JavaScript errors in the console</li>
+            <li>Test each button type mentioned below</li>
+            <li>Report which specific buttons are not working</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Common Button Issues Checklist</h3>
+        <p><strong>Check these in your app's console:</strong></p>
+        <ul>
+            <li>❌ Are there any JavaScript errors? (Red text in console)</li>
+            <li>❌ Do you see "Uncaught" or "TypeError" messages?</li>
+            <li>❌ Are buttons clickable but nothing happens?</li>
+            <li>❌ Are buttons visually disabled/grayed out?</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Individual Buttons</h3>
+        <p>Try these buttons in your app and report which ones don't work:</p>
+
+        <h4>1. Message Input Area:</h4>
+        <ul>
+            <li><code>Attach file button</code> (📎)</li>
+            <li><code>Emoji button</code> (😊)</li>
+            <li><code>Send button</code> (➤)</li>
+        </ul>
+
+        <h4>2. Chat Header:</h4>
+        <ul>
+            <li><code>Back button</code> (← on mobile)</li>
+            <li><code>Group info button</code> (ℹ️)</li>
+        </ul>
+
+        <h4>3. Sidebar:</h4>
+        <ul>
+            <li><code>Create group button</code> (+)</li>
+            <li><code>Logout button</code></li>
+            <li><code>Theme toggle</code> (🌙/☀️)</li>
+        </ul>
+
+        <h4>4. Group Info Panel:</h4>
+        <ul>
+            <li><code>Close info button</code> (×)</li>
+            <li><code>Leave group button</code></li>
+            <li><code>Promote member buttons</code> (admin controls)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Quick Console Tests</h3>
+        <p>Run these in your browser console to test functionality:</p>
+
+        <h4>Test Event Listeners:</h4>
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; overflow-x: auto;">
+// Check if app is loaded
+console.log('App exists:', typeof app !== 'undefined');
+
+// Check if WebSocket is connected
+console.log('WebSocket connected:', ws?.isConnected);
+
+// Test button query
+console.log('Send button:', document.getElementById('send-btn'));
+console.log('Create group button:', document.getElementById('create-group-btn'));
+console.log('Logout button:', document.getElementById('logout-btn'));
+
+// Check for event listeners (should show listeners attached)
+getEventListeners(document.getElementById('send-btn'));
+        </pre>
+
+        <h4>Test Typing Indicator Manually:</h4>
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; overflow-x: auto;">
+// Show typing indicator
+if (app && app.currentChat) {
+    app.handleTypingIndicator({
+        user_id: 999,
+        username: 'Test User',
+        is_typing: true,
+        group_id: app.currentChat.type === 'group' ? app.currentChat.id : null
+    });
+}
+        </pre>
+    </div>
+
+    <div class="test-section">
+        <h3>Report Format</h3>
+        <p>Please provide:</p>
+        <ol>
+            <li><strong>Which specific buttons don't work</strong> (use names from list above)</li>
+            <li><strong>Any console errors</strong> (copy/paste the red error messages)</li>
+            <li><strong>What happens when you click</strong> (nothing? error? wrong action?)</li>
+        </ol>
+        <p><em>This will help me fix the exact issues quickly!</em></p>
+    </div>
+
+    <script>
+        console.log('%c🔧 Button Test Page Loaded', 'color: #4f46e5; font-size: 16px; font-weight: bold;');
+        console.log('%cOpen your main app and check the console for errors', 'color: #666;');
+    </script>
+</body>
+
+</html>

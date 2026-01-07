@@ -8,6 +8,7 @@ class APIClient {
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
+
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const headers = {
@@ -44,29 +45,30 @@ class APIClient {
         }
     }
 
+
     async handleResponse(response) {
-    // Handle empty responses (like 204 No Content)
-    const contentType = response.headers.get('content-type');
-    
-    let data;
-    if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-    } else {
-        const text = await response.text();
-        // Try to parse as JSON, fallback to text
-        try {
-            data = JSON.parse(text);
-        } catch {
-            data = { detail: text || 'Request failed' };
+        // Handle empty responses (like 204 No Content)
+        const contentType = response.headers.get('content-type');
+
+        let data;
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            // Try to parse as JSON, fallback to text
+            try {
+                data = JSON.parse(text);
+            } catch {
+                data = { detail: text || 'Request failed' };
+            }
         }
+
+        if (!response.ok) {
+            throw new Error(data.detail || data.error || JSON.stringify(data) || 'Request failed');
+        }
+
+        return data;
     }
-    
-    if (!response.ok) {
-        throw new Error(data.detail || data.error || JSON.stringify(data) || 'Request failed');
-    }
-    
-    return data;
-}
 
     // Authentication
     async login(identifier, password) {
@@ -78,7 +80,7 @@ class APIClient {
         localStorage.setItem(CONFIG.TOKEN_KEY, data.tokens.access);
         localStorage.setItem(CONFIG.REFRESH_TOKEN_KEY, data.tokens.refresh);
         localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(data.user.id));
-        
+
         return data;
     }
 
@@ -172,28 +174,23 @@ class APIClient {
         return await this.request(`/users/${userId}/`);
     }
 
-    // Messages
-    async getMessages(filters = {}) {
-        const params = new URLSearchParams(filters);
-        return await this.request(`/messages/?${params}`);
-    }
 
     async sendMessage(messageData) {
-    // Log what we're sending
-    console.log('API: Sending message data:', messageData);
-    
-    try {
-        const response = await this.request('/messages/', {
-            method: 'POST',
-            body: JSON.stringify(messageData)
-        });
-        console.log('API: Message sent, response:', response);
-        return response;
-    } catch (error) {
-        console.error('API: Send message failed:', error);
-        throw error;
+        // Log what we're sending
+        console.log('API: Sending message data:', messageData);
+
+        try {
+            const response = await this.request('/messages/', {
+                method: 'POST',
+                body: JSON.stringify(messageData)
+            });
+            console.log('API: Message sent, response:', response);
+            return response;
+        } catch (error) {
+            console.error('API: Send message failed:', error);
+            throw error;
+        }
     }
-}
 
     async deleteMessage(messageId) {
         return await this.request(`/messages/${messageId}/`, {
@@ -208,6 +205,25 @@ class APIClient {
         });
     }
 
+    async reactToMessage(messageId, emoji) {
+        return await this.request(`/messages/${messageId}/react/`, {
+            method: 'POST',
+            body: JSON.stringify({ emoji })
+        });
+    }
+
+    async getMessages(filters = {}) {
+        const params = new URLSearchParams();
+
+        Object.keys(filters).forEach(key => {
+            if (filters[key] !== undefined && filters[key] !== null) {
+                params.append(key, filters[key]);
+            }
+        });
+
+        return await this.request(`/messages/?${params}`);
+    }
+
     // Typing Indicator
     //async sendTyping(recipientId, isTyping) {
     //return await this.request('/messages/typing/', {  // Changed from '/typing/' to '/messages/typing/'
@@ -217,7 +233,7 @@ class APIClient {
     //        is_typing: isTyping 
     //    })
     //});
-//}
+    //}
 
     // File Upload
     async uploadFile(file) {
@@ -237,6 +253,10 @@ class APIClient {
 
         return await response.json();
     }
+    async getChats() {
+        return await this.request('/chats/');
+    }
+
 }
 
 // Create global API instance
