@@ -17,7 +17,7 @@
 
 <body>
     <!-- Login Screen -->
-    <div id="login-screen" class="screen active">
+    <div id="login-screen" class="screen">
         <div class="login-container">
             <div class="logo">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -548,96 +548,159 @@
                 </div>
             </div>
         </div>
-        <!-- Forward Message Modal -->
-        <div id="forward-modal" class="modal">
-            <div class="modal-overlay"></div>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Forward Message</h3>
-                    <button class="btn-icon close-modal">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="search-container" style="margin-bottom: 10px;">
-                        <input type="text" id="forward-search" placeholder="Search chats..." class="search-input">
-                    </div>
-                    <div id="forward-chats-list" class="forward-chat-list">
-                        <!-- Chats will be listed here -->
-                        <div class="loading">Loading chats...</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary close-modal">Cancel</button>
-                </div>
-            </div>
-        </div>
+    </div>
 
-        <!-- Image Viewer -->
-        <div id="image-viewer" class="image-viewer hidden">
-            <div class="image-viewer-header">
-                <div>
-                    <h3 id="image-viewer-title">Image</h3>
-                    <p id="image-viewer-subtitle"></p>
-                </div>
-                <button class="btn-icon" id="close-image-viewer">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Forward Message Modal -->
+    <div id="forward-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Forward Message</h3>
+                <button class="btn-icon close-modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
             </div>
-            <div class="image-viewer-content">
-                <img id="image-viewer-img" src="" alt="Full size image">
+            <div class="modal-body">
+                <div class="search-container" style="margin-bottom: 10px;">
+                    <input type="text" id="forward-search" placeholder="Search chats..." class="search-input">
+                </div>
+                <div id="forward-chats-list" class="forward-chat-list">
+                    <!-- Chats will be listed here -->
+                    <div class="loading">Loading chats...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">Cancel</button>
             </div>
         </div>
+    </div>
 
-        <!-- Toast Container -->
-        <div id="toast-container" class="toast-container"></div>
-
-        <!-- Connection Status -->
-        <div id="connection-status" class="connection-status hidden">
-            <span class="status-dot"></span>
-            <span class="status-message">Connecting...</span>
-        </div>
-
-        <!-- Loading Overlay -->
-        <div id="loading-overlay" class="loading-overlay hidden">
-            <div class="loading-spinner"></div>
-            <p>Loading...</p>
-        </div>
-
-        <!-- Message Actions Sheet (Mobile) -->
-
-
-
-        <!-- Voice Recording Overlay -->
-        <div id="voice-recording-overlay" class="voice-recording-overlay hidden">
-            <div class="voice-recording-animation">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                    <line x1="12" y1="19" x2="12" y2="23"></line>
-                    <line x1="8" y1="23" x2="16" y2="23"></line>
+    <!-- Image Viewer -->
+    <div id="image-viewer" class="image-viewer hidden">
+        <div class="image-viewer-header">
+            <div>
+                <h3 id="image-viewer-title">Image</h3>
+                <p id="image-viewer-subtitle"></p>
+            </div>
+            <button class="btn-icon" id="close-image-viewer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
+            </button>
+        </div>
+        <div class="image-viewer-content">
+            <img id="image-viewer-img" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status hidden">
+        <span class="status-dot"></span>
+        <span class="status-message">Connecting...</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Message Actions Sheet (Mobile) -->
+
+
+
+    <!-- Voice Recording Overlay -->
+    <div id="voice-recording-overlay" class="voice-recording-overlay hidden">
+        <div class="voice-recording-animation">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+        </div>
+        <div class="recording-timer">0:00</div>
+        <p style="color: white; text-align: center;">Slide up to cancel • Release to send</p>
+    </div>
+
+    <!-- Global Search Overlay -->
+    <div id="global-search-overlay" class="global-search-overlay hidden">
+        <div class="global-search-header">
+            <button id="hamburger-menu-btn" class="btn-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div class="search-input-wrapper">
+                <input type="text" id="global-search-input" placeholder="Search" autocomplete="off" />
+                <button id="clear-search-btn" class="btn-icon clear-btn hidden">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
-            <div class="recording-timer">0:00</div>
-            <p style="color: white; text-align: center;">Slide up to cancel • Release to send</p>
+            <button id="close-search-btn" class="btn-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
 
+        <!-- Search Category Tabs -->
+        <div class="search-tabs">
+            <button class="search-tab active" data-category="all">Chats</button>
+            <button class="search-tab" data-category="channels">Channels</button>
+            <button class="search-tab" data-category="apps">Apps</button>
+            <button class="search-tab" data-category="posts">Posts</button>
+            <button class="search-tab" data-category="photos">Photos</button>
+            <button class="search-tab" data-category="videos">Videos</button>
+            <button class="search-tab" data-category="docs">Docs</button>
+        </div>
 
-        <!-- Scripts -->
+        <!-- Search Results Container -->
+        <div class="search-results-container">
+            <!-- Frequent Contacts (shown when empty) -->
+            <div id="frequent-contacts" class="frequent-contacts">
+                <h4>Frequent contacts</h4>
+                <div class="frequent-contacts-list"></div>
+            </div>
 
-        <script src="config.js"></script>
-        <script src="api.js"></script>
-        <script src="websocket.js"></script>
-        <script src="ui.js"></script>
-        <script src="features.js"></script>
-        <script src="app.js"></script>
+            <!-- Empty State -->
+            <div id="search-empty-state" class="search-empty-state">
+                <svg class="search-empty-icon" width="120" height="120" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <p class="search-empty-text">Recent search results<br>will appear here.</p>
+            </div>
+
+            <!-- Results List -->
+            <div id="search-results-list" class="search-results-list hidden"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="websocket.js"></script>
+    <script src="ui.js"></script>
+    <script src="features.js"></script>
+    <script src="sidebar-resize.js"></script>
+    <script src="search-overlay.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>

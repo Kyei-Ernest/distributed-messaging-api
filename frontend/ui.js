@@ -1,6 +1,7 @@
 // ============================================================================
 // FILE: ui.js - Complete UI Helper Functions with Real-time Features
 // ============================================================================
+console.log('✅ UI Helper loaded');
 
 const UI = {
     // ========================================================================
@@ -150,6 +151,24 @@ const UI = {
         }
 
         return colors[Math.abs(hash) % colors.length];
+    },
+
+    createAvatar(name, size = 40) {
+        const color = this.generateAvatarColor(name);
+        const initials = this.getInitials(name);
+
+        const div = document.createElement('div');
+        div.className = 'avatar';
+        if (size !== 40) {
+            div.style.width = `${size}px`;
+            div.style.height = `${size}px`;
+            div.style.minWidth = `${size}px`;
+            div.style.fontSize = `${Math.floor(size / 2.5)}px`;
+        }
+        div.style.background = color;
+        div.innerHTML = `<span>${initials}</span>`;
+
+        return div;
     },
 
     // ========================================================================
