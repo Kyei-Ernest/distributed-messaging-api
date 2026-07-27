@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Distributed Messaging - Real-time Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Upload Progress Bar -->
+    <div id="upload-progress" class="upload-progress">
+        <div id="upload-progress-bar" class="upload-progress-bar"></div>
+    </div>
+
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="offline-banner">
+        You are offline. Messages will be queued and sent when connection is restored.
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen">
+        <div class="login-container">
+            <div class="logo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h1>Messaging App</h1>
+            </div>
+
+            <form id="login-form" class="auth-form">
+                <h2>Sign In</h2>
+                <div class="form-group">
+                    <label for="login-identifier">Username or Email</label>
+                    <input type="text" id="login-identifier" placeholder="Enter username or email" required
+                        autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="login-password" placeholder="Enter password" required
+                            autocomplete="current-password">
+                        <button type="button" class="toggle-password password-toggle" data-target="login-password"
+                            aria-label="Toggle password visibility">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                class="eye-icon" aria-hidden="true" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                aria-hidden="true" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                <div id="login-error" class="error-message"></div>
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="#" id="show-register">Sign up</a></p>
+                </div>
+            </form>
+
+            <form id="register-form" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="register-password" placeholder="Create a password" required
+                            minlength="8">
+                        <button type="button" class="toggle-password password-toggle" data-target="register-password">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill"></div>
+                        </div>
+                        <span class="strength-text">Enter password</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="register-firstname">First Name (Optional)</label>
+                    <input type="text" id="register-firstname" placeholder="Enter first name">
+                </div>
+                <div class="form-group">
+                    <label for="register-lastname">Last Name (Optional)</label>
+                    <input type="text" id="register-lastname" placeholder="Enter last name">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                <div id="register-error" class="error-message"></div>
+                <div class="form-footer">
+                    <p>Already have an account? <a href="#" id="show-login">Sign in</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Chat Screen -->
+    <div id="chat-screen" class="screen">
+        <div class="chat-container">
+            <!-- Sidebar -->
+            <aside class="sidebar mobile-open">
+                <div class="sidebar-header">
+                    <div class="user-profile">
+                        <div class="avatar" id="current-user-avatar">
+                            <span id="current-user-initials">U</span>
+                        </div>
+
+                        <div class="user-info">
+                            <h3 id="current-user-name">User</h3>
+                            <div>
+                                <span class="status-indicator online"></span>
+                                <span class="status-text">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sidebar-header-actions">
+                        <button class="btn-icon desktop-only" id="settings-btn" title="Settings" aria-label="Settings" style="position: relative;">
+                            <span id="total-unread-badge" class="hidden">0</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-icon" id="toggle-search-btn" title="Search" aria-label="Toggle search">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-icon desktop-only" id="theme-toggle" title="Toggle theme"
+                            aria-label="Toggle theme">
+                            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                aria-hidden="true" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                aria-hidden="true" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-icon desktop-only" id="logout-btn" title="Logout" aria-label="Logout">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                        </button>
+                        <div class="mobile-menu-container mobile-only">
+                            <button class="btn-icon" id="mobile-menu-btn" title="Menu" aria-label="Open menu">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    aria-hidden="true" stroke-width="2">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                            </button>
+                            <div class="mobile-menu-dropdown hidden" id="mobile-menu-dropdown">
+                                <button class="menu-item" id="menu-theme-toggle">
+                                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="5"></circle>
+                                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                    </svg>
+                                    <svg class="moon-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
+                                    <span>Toggle Theme</span>
+                                </button>
+                                <button class="menu-item" id="menu-logout">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="chats">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Chats
+                    </button>
+                    <button class="tab-btn" data-tab="groups">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        Groups
+                    </button>
+                    <button class="tab-btn" data-tab="users">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Private
+                    </button>
+                </div>
+
+                <div class="sidebar-content">
+                    <!-- Chats Tab (Combined) -->
+                    <div id="chats-tab" class="tab-content active">
+                        <div class="search-container">
+                            <input type="text" id="chat-search" placeholder="Search chats..." class="search-input">
+                        </div>
+                        <div id="chats-list" class="list-container">
+                            <div class="loading">Loading chats...</div>
+                        </div>
+                    </div>
+
+                    <!-- Groups Tab -->
+                    <div id="groups-tab" class="tab-content">
+                        <div class="search-container">
+                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
+                        </div>
+                        <div id="groups-list" class="list-container">
+                            <div class="loading">Loading groups...</div>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div id="users-tab" class="tab-content">
+                        <div class="search-container">
+                            <input type="text" id="user-search" placeholder="Search users..." class="search-input">
+                        </div>
+                        <div id="users-list" class="list-container">
+                            <div class="loading">Loading users...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Action Button for Group Creation -->
+                <button class="fab-button" id="fab-create-group" aria-label="Create New Group" title="Create New Group">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+
+
+
+                <!-- Global Search Overlay (Moved inside sidebar) -->
+                <div id="global-search-overlay" class="global-search-overlay hidden">
+                    <div class="global-search-header">
+                        <button id="hamburger-menu-btn" class="btn-icon" aria-label="Open menu">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                        <div class="search-input-wrapper">
+                            <input type="text" id="global-search-input" placeholder="Search" autocomplete="off" />
+                            <button id="clear-search-btn" class="btn-icon clear-btn hidden" aria-label="Clear search">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    aria-hidden="true" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <button id="close-search-btn" class="btn-icon" aria-label="Close search">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Search Category Tabs -->
+                    <div class="search-tabs">
+                        <button class="search-tab active" data-category="all">All</button>
+                        <button class="search-tab" data-category="chats">Chats</button>
+                        <button class="search-tab" data-category="groups">Groups</button>
+                        <button class="search-tab" data-category="contacts">Contacts</button>
+                    </div>
+
+                    <!-- Search Results Container -->
+                    <div class="search-results-container">
+                        <!-- Frequent Contacts (shown when empty) -->
+                        <div id="frequent-contacts" class="frequent-contacts">
+                            <h4>Frequent contacts</h4>
+                            <div class="frequent-contacts-list"></div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="search-empty-state" class="search-empty-state">
+                            <svg class="search-empty-icon" width="120" height="120" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.5">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="M21 21l-4.35-4.35"></path>
+                            </svg>
+                            <p class="search-empty-text">Recent search results<br>will appear here.</p>
+                        </div>
+
+                        <!-- Results List -->
+                        <div id="search-results-list" class="search-results-list hidden"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Chat Area -->
+            <main class="chat-main">
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state">
+                    <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h2>Select a conversation</h2>
+                    <p>Choose a group or user to start messaging</p>
+                </div>
+
+                <!-- Chat Header -->
+                <div id="chat-header" class="chat-header hidden">
+                    <button class="btn-icon mobile-only" id="mobile-back-btn" title="Back" aria-label="Go back">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            aria-hidden="true" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </button>
+                    <div class="chat-header-info">
+                        <div class="avatar">
+                            <span id="chat-avatar-initials">G</span>
+                        </div>
+                        <div>
+                            <h3 id="chat-title">Group Name</h3>
+                            <p id="chat-subtitle">5 members</p>
+                        </div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button class="btn-icon" id="group-info-btn" title="Group Info" aria-label="Group information">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="messages-container" class="messages-container hidden">
+                    <!-- NEW: Loading indicator for infinite scroll -->
+                    <div id="messages-loading-top" class="messages-loading-top">
+                        <div class="spinner"></div>
+                        <span style="margin-left: 8px;">...</span>
+                    </div>
+                    <div id="messages-list" class="messages-list">
+                        <!-- Messages will be inserted here dynamically -->
+                        <!-- Received messages (from others) will have class "message" (left side) -->
+                        <!-- Sent messages (from current user) will have class "message own" (right side) -->
+                    </div>
+
+                    <!-- Typing Indicator (Inside messages-container, after messages) -->
+                    <div id="typing-indicator" class="typing-indicator hidden">
+                        <div class="avatar avatar-sm">
+                            <span>U</span>
+                        </div>
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </div>
+                        </div>
+                        <div id="typing-text" class="typing-text"></div>
+                    </div>
+                </div>
+
+
+
+                <!-- Scroll to Bottom Button -->
+                <button id="scroll-to-bottom" class="btn-icon scroll-bottom-btn hidden">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <polyline points="19 12 12 19 5 12"></polyline>
+                    </svg>
+                </button>
+
+                <!-- Message Input -->
+                <div id="message-input-container" class="message-input-container hidden">
+                    <!-- Reply Preview -->
+                    <div id="reply-preview" class="hidden"></div>
+
+                    <!-- File Preview Area -->
+                    <div id="file-preview-area" class="file-preview-area hidden">
+                        <div id="file-preview-list" class="file-preview-list"></div>
+                    </div>
+
+                    <form id="message-form" class="message-form" onsubmit="return false;">
+                        <!-- Hidden file input -->
+                        <input type="file" id="file-input" multiple hidden>
+
+                        <!-- Input Wrapper -->
+
+
+
+                        <div class="input-wrapper">
+                            <!-- Attach Button -->
+                            <button type="button" class="btn-icon" id="attach-btn" title="Attach file"
+                                aria-label="Attach file">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    aria-hidden="true" stroke-width="2">
+                                    <path
+                                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                    </path>
+                                </svg>
+                            </button>
+
+                            <!-- Message Input -->
+                            <textarea id="message-input" placeholder="Type a message..." autocomplete="off"
+                                rows="1"></textarea>
+
+                            <!-- Emoji Button -->
+                            <button type="button" class="btn-icon" id="emoji-btn" title="Emoji"
+                                aria-label="Open emoji picker">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    aria-hidden="true" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Send Button - ALWAYS VISIBLE -->
+                        <button type="submit" class="btn btn-primary btn-icon" id="send-btn" aria-label="Send message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                aria-hidden="true" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </main>
+
+
+            <!-- Right Sidebar (Group Info) -->
+            <aside id="info-sidebar" class="info-sidebar">
+                <div class="info-header">
+                    <h3>Group Info</h3>
+                    <button class="btn-icon" id="close-info-btn" aria-label="Close info">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            aria-hidden="true" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="info-content">
+                    <div class="info-section" style="text-align: center;">
+                        <div class="avatar info-avatar">
+                            <span id="info-avatar-initials">G</span>
+                        </div>
+                        <h3 id="info-group-name" class="info-group-name">Group Name</h3>
+                        <p class="info-member-text"><span id="info-member-count">0</span>
+                            members</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>Description</h4>
+                        <p id="info-description">No description</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>Members</h4>
+                        <div id="info-members-list" class="members-list">
+                            <!-- Members will be listed here -->
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <button class="btn btn-danger btn-block" id="leave-group-btn">Leave Group</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <button class="mobile-nav-item active" data-action="chats">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Chats</span>
+            </button>
+            <button class="mobile-nav-item" data-action="groups">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Groups</span>
+            </button>
+            <button class="mobile-nav-item" data-action="contacts">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Contacts</span>
+            </button>
+        </nav>
+    </div>
+
+<!-- Emoji Picker -->
+    <div id="emoji-picker" class="emoji-picker hidden">
+        <div class="emoji-categories">
+            <button class="emoji-category active" data-category="smileys">😊</button>
+            <button class="emoji-category" data-category="people">👋</button>
+            <button class="emoji-category" data-category="nature">🌸</button>
+            <button class="emoji-category" data-category="food">🍕</button>
+            <button class="emoji-category" data-category="activities">⚽</button>
+            <button class="emoji-category" data-category="travel">✈️</button>
+            <button class="emoji-category" data-category="objects">💡</button>
+            <button class="emoji-category" data-category="symbols">❤️</button>
+        </div>
+        <div id="emoji-grid" class="emoji-grid"></div>
+    </div>
+
+
+
+    <!-- Create Group Modal -->
+    <div id="create-group-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Group</h3>
+                <button class="btn-icon close-modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="create-group-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="group-name">Group Name</label>
+                        <input type="text" id="group-name" placeholder="Enter group name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="group-description">Description (Optional)</label>
+                        <textarea id="group-description" rows="3" placeholder="Enter group description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Info Modal -->
+    <div id="user-info-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Profile</h3>
+                <button class="btn-icon close-modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body user-info-modal-body">
+                <div class="user-info-header">
+                    <div class="user-info-avatar" id="modal-user-avatar">
+                        <span id="modal-user-initials">U</span>
+                    </div>
+                    <div class="user-info-name" id="modal-user-name">Username</div>
+                    <div class="user-info-username" id="modal-user-username">@username</div>
+                </div>
+
+                <div class="user-info-details">
+                    <div class="user-info-item">
+                        <span class="user-info-label">Email</span>
+                        <span class="user-info-value" id="modal-user-email">email@example.com</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Status</span>
+                        <span class="user-info-value" id="modal-user-status">Offline</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Joined</span>
+                        <span class="user-info-value" id="modal-user-joined">January 2024</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-primary btn-block" id="modal-message-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forward Message Modal -->
+    <div id="forward-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Forward Message</h3>
+                <button class="btn-icon close-modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="search-container" style="margin-bottom: 10px;">
+                    <input type="text" id="forward-search" placeholder="Search chats..." class="search-input">
+                </div>
+                <div id="forward-chats-list" class="forward-chat-list">
+                    <!-- Chats will be listed here -->
+                    <div class="loading">Loading chats...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer -->
+    <div id="image-viewer" class="image-viewer hidden">
+        <div class="image-viewer-header">
+            <div>
+                <h3 id="image-viewer-title">Image</h3>
+                <p id="image-viewer-subtitle"></p>
+            </div>
+            <button class="btn-icon" id="close-image-viewer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="image-viewer-content">
+            <img id="image-viewer-img" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status hidden">
+        <span class="connection-dot"></span>
+        <span class="connection-message">Connecting...</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Message Actions Sheet (Mobile) -->
+
+
+
+    <!-- Voice Recording Overlay -->
+    <div id="voice-recording-overlay" class="voice-recording-overlay hidden">
+        <div class="voice-recording-animation">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+        </div>
+        <div class="recording-timer">0:00</div>
+        <p style="color: white; text-align: center;">Slide up to cancel • Release to send</p>
+    </div>
+
+    <!-- Global Search Overlay (Moved inside sidebar) -->
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu hidden">
+        <div class="context-reactions">
+            <span class="context-reaction" data-reaction="❤️">❤️</span>
+            <span class="context-reaction" data-reaction="😆">😆</span>
+            <span class="context-reaction" data-reaction="😮">😮</span>
+            <span class="context-reaction" data-reaction="😢">😢</span>
+            <span class="context-reaction" data-reaction="👏">👏</span>
+            <span class="context-reaction" data-reaction="🔥">🔥</span>
+        </div>
+        <div class="context-menu-item" data-action="reply">Reply</div>
+        <div class="context-menu-item" data-action="copy">Copy</div>
+        <div class="context-menu-item" data-action="forward">Forward</div>
+        <div class="context-menu-item danger" data-action="delete">Delete</div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="btn-icon close-modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-body">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="general">General</button>
+                    <button class="settings-tab" data-tab="notifications">Notifications</button>
+                    <button class="settings-tab" data-tab="privacy">Privacy</button>
+                </div>
+                <div class="settings-panel active" id="general-panel">
+                    <div class="settings-group">
+                        <h4>Appearance</h4>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Theme</div>
+                                <div class="setting-desc">Choose light or dark mode</div>
+                            </div>
+                            <select id="theme-select">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Chat Theme</div>
+                                <div class="setting-desc">Customize message bubble colors</div>
+                            </div>
+                            <select id="chat-theme-select">
+                                <option value="default">Default</option>
+                                <option value="blue">Blue</option>
+                                <option value="green">Green</option>
+                                <option value="purple">Purple</option>
+                                <option value="gray">Gray</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <h4>Messaging</h4>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Enter to Send</div>
+                                <div class="setting-desc">Press Enter to send messages</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="enter-to-send" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-panel" id="notifications-panel">
+                    <div class="settings-group">
+                        <h4>Notifications</h4>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Desktop Notifications</div>
+                                <div class="setting-desc">Show notifications for new messages</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="desktop-notifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Sound Notifications</div>
+                                <div class="setting-desc">Play sound for new messages</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="sound-notifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-panel" id="privacy-panel">
+                    <div class="settings-group">
+                        <h4>Privacy</h4>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Message Preview</div>
+                                <div class="setting-desc">Show message preview in notifications</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="msg-preview" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Read Receipts</div>
+                                <div class="setting-desc">Let others know you've read their messages</div>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="read-receipts" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (All JS in js/ folder) -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+
+    <!-- UI Modules -->
+    <script src="js/ui/core.js"></script>
+    <script src="js/ui/lists.js"></script>
+    <script src="js/ui/messages.js"></script>
+
+    <!-- Feature Modules -->
+    <script src="js/features/theme.js"></script>
+    <script src="js/features/inputs.js"></script>
+    <script src="js/features/media.js"></script>
+    <script src="js/features/context-menu.js"></script>
+    <script src="js/features/reactions.js"></script>
+    <script src="js/features/voice.js"></script>
+    <script src="js/features/themes.js"></script>
+    <script src="js/features/init.js"></script>
+
+    <script src="js/sidebar-resize.js"></script>
+    <script src="js/search-overlay.js"></script>
+
+    <!-- Modular Architecture -->
+    <script src="js/core/EventBus.js"></script>
+    <script src="js/modules/auth/AuthManager.js"></script>
+    <script src="js/modules/navigation/NavigationManager.js"></script>
+    <script src="js/modules/chat/ChatManager.js"></script>
+    <script src="js/modules/groups/GroupManager.js"></script>
+    <script src="js/modules/users/UserManager.js"></script>
+    <script src="js/modules/messages/MessageHandler.js"></script>
+    <script src="js/modules/websocket/WebSocketManager.js"></script>
+
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
+</body>
+
+</html>

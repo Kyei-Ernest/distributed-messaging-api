@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dms_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-messaging_db}
+      POSTGRES_USER: ${DB_USER:-messaging_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-messaging_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-messaging_user} -d ${DB_NAME:-messaging_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - dms_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: dms_redis
+    restart: always
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - dms_net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dms_backend
+    restart: always
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-4} --threads ${GUNICORN_THREADS:-2} --max-requests 1000 --max-requests-jitter 50 config.wsgi:application"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,nginx}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME:-messaging_db}
+      - DB_USER=${DB_USER:-messaging_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://127.0.0.1}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-http://localhost,http://127.0.0.1}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - dms_net
+
+  websocket:
+    build:
+      context: ./websocket-server
+      dockerfile: Dockerfile
+    container_name: dms_websocket
+    restart: always
+    environment:
+      - PORT=8001
+      - REDIS_URL=redis:6379
+      - JWT_SECRET=${SECRET_KEY}
+      - ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://127.0.0.1}
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    networks:
+      - dms_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: dms_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      backend:
+        condition: service_started
+      websocket:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    networks:
+      - dms_net
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  dms_net:
+    driver: bridge

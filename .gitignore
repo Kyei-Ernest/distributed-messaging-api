@@ -1,0 +1,36 @@
+# Environment
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Static files
+staticfiles/
+
+# Testing
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
