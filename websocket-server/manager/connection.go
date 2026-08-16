@@ -75,6 +75,11 @@ func (cm *ConnectionManager) registerClient(client *Client) {
 
 	// Publish user online status to Redis
 	cm.publishUserStatus(client.ID, client.Username, "online")
+
+	// Track presence in the shared Redis set that Django reads for the chat list.
+	if err := cm.pubsub.AddOnlineUser(client.ID); err != nil {
+		log.Printf("Failed to add user %s to online_users set: %v", client.Username, err)
+	}
 }
 
 func (cm *ConnectionManager) unregisterClient(client *Client) {
@@ -100,6 +105,11 @@ func (cm *ConnectionManager) unregisterClient(client *Client) {
 
 		// Publish user offline status to Redis
 		cm.publishUserStatus(client.ID, client.Username, "offline")
+
+		// Remove from the shared presence set.
+		if err := cm.pubsub.RemoveOnlineUser(client.ID); err != nil {
+			log.Printf("Failed to remove user %s from online_users set: %v", client.Username, err)
+		}
 	}
 }
 
@@ -129,8 +139,14 @@ func (cm *ConnectionManager) publishUserStatus(userID, username, status string) 
 	log.Printf("📡 Published user status: %s is %s", username, status)
 }
 
-// GetOnlineUsers returns a list of currently online user IDs
+// GetOnlineUsers returns a list of currently online user IDs from the shared
+// Redis presence set. Falling back to node-local memory keeps presence working
+// even if Redis is temporarily unavailable.
 func (cm *ConnectionManager) GetOnlineUsers() []string {
+	if ids, err := cm.pubsub.GetOnlineUserIDs(); err == nil {
+		return ids
+	}
+
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
@@ -224,6 +240,26 @@ func (cm *ConnectionManager) SendToUser(userID string, message []byte) {
 			log.Printf("Message sent to user %s", client.Username)
 		default:
 			log.Printf("Failed to send to user %s", client.Username)
+		}
+	}
+}
+
+// routeReadEvent routes a read-receipt event to the conversation participants only,
+// so private read receipts do not leak to every connected client. It always echoes
+// to the reader, then to the group (if known) or the private partner (if known).
+func (cm *ConnectionManager) routeReadEvent(readBy string, data map[string]interface{}, payload []byte, echoToReader bool) {
+	if echoToReader {
+		cm.SendToUser(readBy, payload)
+	}
+	if groupID, ok := data["group_id"].(string); ok && groupID != "" {
+		cm.BroadcastToGroup(groupID, payload)
+		return
+	}
+	// For private chats, notify the other participant when available.
+	for _, key := range []string{"recipient_id", "sender_id"} {
+		if id, ok := data[key].(string); ok && id != "" && id != readBy {
+			cm.SendToUser(id, payload)
+			return
 		}
 	}
 }
@@ -578,9 +614,9 @@ func (cm *ConnectionManager) handleMessageRead(message map[string]interface{}) {
 		return
 	}
 
-	cm.SendToUser(readBy, msgBytes)
-	cm.broadcastMessage(msgBytes)
-	log.Printf("✅ Read receipt broadcasted for message %s by user %s", messageID, readBy)
+	// Route only to conversation participants (no global broadcast).
+	cm.routeReadEvent(readBy, data, msgBytes, true)
+	log.Printf("✅ Read receipt routed for message %s by user %s", messageID, readBy)
 }
 
 func (cm *ConnectionManager) handleUnreadCountUpdate(message map[string]interface{}) {
@@ -879,12 +915,16 @@ func (c *Client) handleMarkRead(data map[string]interface{}) {
 			"read_by":          c.ID,
 			"read_by_username": c.Username,
 			"timestamp":        time.Now().Format(time.RFC3339),
+			// Routing hints supplied by the client so receipts reach only participants.
+			"group_id":     data["group_id"],
+			"recipient_id": data["recipient_id"],
+			"sender_id":    data["sender_id"],
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
 	msgBytes, _ := json.Marshal(readReceipt)
-	c.Manager.Broadcast <- msgBytes
+	c.Manager.routeReadEvent(c.ID, readReceipt.Data, msgBytes, true)
 	log.Printf("✅ Read receipt from %s for message %s", c.Username, messageID)
 }
 

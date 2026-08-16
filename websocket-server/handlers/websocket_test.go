@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"websocket-server/config"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -76,5 +78,59 @@ func TestValidateToken(t *testing.T) {
 
 	if validatedClaims.Username != "alice" {
 		t.Errorf("Expected Username 'alice', got '%s'", validatedClaims.Username)
+	}
+}
+
+func TestExtractTokenFromSubprotocol(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/ws", nil)
+	req.Header.Set("Sec-WebSocket-Protocol", "chat, Bearer abc.def.ghi")
+
+	token := extractTokenFromSubprotocol(req)
+	if token != "abc.def.ghi" {
+		t.Errorf("Expected token 'abc.def.ghi', got '%s'", token)
+	}
+}
+
+func TestExtractTokenFromSubprotocolTokenPrefix(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/ws", nil)
+	req.Header.Set("Sec-WebSocket-Protocol", "token.abc.def")
+
+	token := extractTokenFromSubprotocol(req)
+	if token != "abc.def" {
+		t.Errorf("Expected token 'abc.def', got '%s'", token)
+	}
+}
+
+func TestExtractTokenFromSubprotocolMissing(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/ws", nil)
+	if token := extractTokenFromSubprotocol(req); token != "" {
+		t.Errorf("Expected empty token, got '%s'", token)
+	}
+}
+
+func TestIsOriginAllowed(t *testing.T) {
+	cfg := &config.Config{
+		AllowOrigins: []string{"https://chat.example.com"},
+	}
+
+	// Configured origin is allowed.
+	okReq, _ := http.NewRequest("GET", "/ws", nil)
+	okReq.Header.Set("Origin", "https://chat.example.com")
+	if !isOriginAllowed(okReq, cfg) {
+		t.Error("Expected configured origin to be allowed")
+	}
+
+	// Local development origin is allowed.
+	localReq, _ := http.NewRequest("GET", "/ws", nil)
+	localReq.Header.Set("Origin", "http://localhost:5500")
+	if !isOriginAllowed(localReq, cfg) {
+		t.Error("Expected localhost origin to be allowed")
+	}
+
+	// Unconfigured cross-site origin is rejected.
+	badReq, _ := http.NewRequest("GET", "/ws", nil)
+	badReq.Header.Set("Origin", "https://evil.example.com")
+	if isOriginAllowed(badReq, cfg) {
+		t.Error("Expected unconfigured origin to be rejected")
 	}
 }

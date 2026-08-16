@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -16,11 +18,15 @@ from drf_spectacular.utils import (
     extend_schema_view
 )
 
+from .authentication import generate_api_key, current_workspace
+from .models import Workspace
+from .permissions import IsSelfOrAdmin
 from .serializers import (
     UserSerializer,
     UserCreateSerializer,
     LoginSerializer,
     TokenRefreshCustomSerializer,
+    WorkspaceSerializer,
 )
 
 User = get_user_model()
@@ -86,10 +92,19 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "create":
             return [permissions.AllowAny()]
+        # Object-modifying actions must be performed by the owning user (or an admin).
+        if self.action in ("update", "partial_update", "destroy"):
+            return [permissions.IsAuthenticated(), IsSelfOrAdmin()]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
-        return User.objects.all()
+        qs = User.objects.all()
+        # Multi-tenant scoping: when a workspace is resolved for the request, only
+        # users within that workspace are visible.
+        workspace = current_workspace(self.request)
+        if workspace is not None:
+            qs = qs.filter(workspace=workspace)
+        return qs
 
     @extend_schema(
         summary="Get current user",
@@ -101,6 +116,67 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# =====================================================
+# Workspace (multi-tenant) provisioning
+# =====================================================
+
+class WorkspaceViewSet(viewsets.ModelViewSet):
+    """
+    Manage tenant Workspaces. Creating a workspace issues an API key that the
+    embedding application uses for server-to-server calls. The raw key is returned
+    only once at creation/regeneration (only its hash is stored).
+    """
+
+    queryset = Workspace.objects.all().order_by('-created_at')
+    serializer_class = WorkspaceSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        workspace = serializer.save()
+
+        raw_key = generate_api_key()
+        workspace.issue_api_key(raw_key)
+
+        data = WorkspaceSerializer(workspace).data
+        data['api_key'] = raw_key  # shown only once
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary='Regenerate workspace API key',
+        description='Invalidates the old key and issues a new one (returned once).',
+        tags=['Workspaces']
+    )
+    @action(detail=True, methods=['post'], url_path='regenerate-key')
+    def regenerate_key(self, request, pk=None):
+        workspace = self.get_object()
+        raw_key = generate_api_key()
+        workspace.issue_api_key(raw_key)
+        return Response({'id': str(workspace.id), 'api_key': raw_key})
+
+    @extend_schema(
+        summary='Workspace usage',
+        description='Rolling 7-day message usage vs. the configured daily quota.',
+        tags=['Workspaces']
+    )
+    @action(detail=True, methods=['get'], url_path='usage')
+    def usage(self, request, pk=None):
+        workspace = self.get_object()
+        today = timezone.localdate()
+        rows = workspace.daily_usage.filter(date__gte=today - timedelta(days=6))
+        daily = {row.date.isoformat(): row.message_count for row in rows}
+        total = sum(daily.values())
+        quota = workspace.message_quota
+        return Response({
+            'workspace_id': str(workspace.id),
+            'total_messages_7d': total,
+            'quota': quota,
+            'exceeded': bool(quota is not None and total >= quota),
+            'daily': daily,
+        })
 
 
 # =====================================================

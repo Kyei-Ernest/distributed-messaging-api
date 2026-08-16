@@ -38,7 +38,9 @@ func NewRedisPubSub(redisURL string) *RedisPubSub {
 	}
 }
 
-// Subscribe subscribes to Redis channels and forwards messages with auto-reconnect
+// Subscribe subscribes to Redis channels and forwards messages with auto-reconnect.
+// Backoff starts at 1s and doubles on each reconnect, capped at 30s. It is only
+// consulted between a dropped subscription and the next successful re-subscribe.
 func (r *RedisPubSub) Subscribe(handler MessageHandler) {
 	backoff := 1 * time.Second
 	for {
@@ -48,7 +50,6 @@ func (r *RedisPubSub) Subscribe(handler MessageHandler) {
 		ch := pubsub.Channel()
 		for msg := range ch {
 			handler.HandleRedisMessage(msg.Channel, []byte(msg.Payload))
-			backoff = 1 * time.Second // reset backoff on successful message
 		}
 
 		pubsub.Close()
@@ -58,6 +59,24 @@ func (r *RedisPubSub) Subscribe(handler MessageHandler) {
 			backoff *= 2
 		}
 	}
+}
+
+// AddOnlineUser adds a user ID to the online_users tracking set so Django
+// (sharing the same Redis logical DB) can report accurate presence.
+func (r *RedisPubSub) AddOnlineUser(userID string) error {
+	return r.client.SAdd(r.ctx, "online_users", userID).Err()
+}
+
+// RemoveOnlineUser removes a user ID from the online_users tracking set.
+func (r *RedisPubSub) RemoveOnlineUser(userID string) error {
+	return r.client.SRem(r.ctx, "online_users", userID).Err()
+}
+
+// GetOnlineUserIDs returns all user IDs currently tracked in the shared
+// online_users set. Reading from Redis (instead of node-local memory) makes
+// presence correct across multiple WebSocket server instances.
+func (r *RedisPubSub) GetOnlineUserIDs() ([]string, error) {
+	return r.client.SMembers(r.ctx, "online_users").Result()
 }
 
 // Publish publishes a message to a Redis channel

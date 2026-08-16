@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +21,13 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-CHANGE-THIS-IN-PRODUC
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
+
+# Fail fast in production if the secret key was never configured (avoids silently
+# running with a publicly-known, hardcoded key).
+if not DEBUG and SECRET_KEY == 'django-insecure-CHANGE-THIS-IN-PRODUCTION':
+    raise ImproperlyConfigured(
+        "SECRET_KEY must be set via environment when DEBUG=False."
+    )
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
@@ -172,6 +180,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "accounts.authentication.WorkspaceAPIAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     

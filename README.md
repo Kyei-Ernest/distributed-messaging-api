@@ -9,6 +9,7 @@ A **hybrid real-time messaging platform** that combines **Django** for business 
 - **Real-Time Messaging** — Instant message delivery via WebSocket with < 10ms latency
 - **Group & Private Chats** — Create groups, manage members, or chat one-on-one
 - **End-to-End Encryption** — AES-256-GCM encrypted message payloads
+- **Server-Assisted Encryption** — Public keys hosted per-user; AES-GCM payloads carry per-recipient keys. Note: keys and ciphertext transit the server, so this is *server-assisted* client encryption, not fully server-independent E2EE.
 - **Emoji Reactions** — React to any message with emoji
 - **Read Receipts** — Know when your messages are seen
 - **Message Replies** — Thread-style replies to any message
@@ -64,7 +65,12 @@ The system uses a **microservices-like hybrid architecture** with three core com
 4. Django persists the message and publishes an event to Redis
 5. Go server receives the event and broadcasts to connected clients
 
----
+> **🔧 Scaling:** for how the WebSocket tier handles many concurrent connections and
+> multi-replica deployments, see [docs/SCALING.md](docs/SCALING.md).
+>
+> **🟩 Embed:** shipping a self-hosted chat inside your own app? Drop in the
+> zero-dependency widget (`dms-chat.js`) — see [docs/EMBED.md](docs/EMBED.md) and
+> the React SDK in `frontend/widget/react`.
 
 ## 🛠️ Tech Stack
 
@@ -235,8 +241,7 @@ distributed-messaging/
 │   ├── pubsub/            # Redis subscriber
 │   └── config/            # Server configuration
 ├── requirements.txt       # Python dependencies
-├── manage.py
-└── start_servers.py       # Multi-server launcher script
+└── manage.py
 ```
 
 ---

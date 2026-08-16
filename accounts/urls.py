@@ -1,9 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-from .views import UserViewSet, LoginView, LogoutView, TokenRefreshView
+from .views import UserViewSet, LoginView, LogoutView, TokenRefreshView, WorkspaceViewSet
 
 router = SimpleRouter()
 router.register(r"users", UserViewSet, basename="user")
+router.register(r"workspaces", WorkspaceViewSet, basename="workspace")
 
 urlpatterns = [
     # Auth

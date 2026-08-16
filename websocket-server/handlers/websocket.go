@@ -14,27 +14,52 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		if origin == "" {
+// extractTokenFromSubprotocol scans the offered Sec-WebSocket-Protocol values for a
+// bearer/JWT token so it is never placed in the URL query string (which would
+// otherwise leak the token into nginx/proxy access logs).
+func extractTokenFromSubprotocol(r *http.Request) string {
+	for _, proto := range websocket.Subprotocols(r) {
+		if strings.HasPrefix(proto, "Bearer ") {
+			return strings.TrimSpace(strings.TrimPrefix(proto, "Bearer "))
+		}
+		if strings.HasPrefix(proto, "token.") {
+			return strings.TrimSpace(strings.TrimPrefix(proto, "token."))
+		}
+	}
+	return ""
+}
+
+// isOriginAllowed enforces Cross-Site WebSocket Hijacking protection.
+func isOriginAllowed(r *http.Request, cfg *config.Config) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		// Non-browser clients (CLIs, tests, servers) may omit the Origin header.
+		return true
+	}
+	// Local development origins.
+	if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
+		return true
+	}
+	for _, allowed := range cfg.AllowOrigins {
+		if strings.EqualFold(strings.TrimRight(origin, "/"), strings.TrimRight(allowed, "/")) {
 			return true
 		}
-		// In production, check against allowed origins or allow same-host
-		if strings.Contains(origin, "localhost") || strings.Contains(origin, "127.0.0.1") {
-			return true
-		}
-		return true // Configurable origin validation fallback
-	},
+	}
+	return false
 }
 
 // WebSocketHandler handles WebSocket connections
 func WebSocketHandler(connManager *manager.ConnectionManager, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Extract and validate JWT token
-		token := r.URL.Query().Get("token")
+		// Enforce origin allow-list (CSWSH protection)
+		if !isOriginAllowed(r, cfg) {
+			log.Printf("WebSocket origin rejected: %q", r.Header.Get("Origin"))
+			http.Error(w, "Origin not allowed", http.StatusForbidden)
+			return
+		}
+
+		// Extract JWT from the negotiated subprotocols (never the query string)
+		token := extractTokenFromSubprotocol(r)
 		if token == "" {
 			http.Error(w, "Missing authentication token", http.StatusUnauthorized)
 			return
@@ -45,6 +70,14 @@ func WebSocketHandler(connManager *manager.ConnectionManager, cfg *config.Config
 			log.Printf("Authentication failed: %v", err)
 			http.Error(w, "Invalid authentication token", http.StatusUnauthorized)
 			return
+		}
+
+		upgrader := websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(req *http.Request) bool {
+				return isOriginAllowed(req, cfg)
+			},
 		}
 
 		// Upgrade HTTP connection to WebSocket

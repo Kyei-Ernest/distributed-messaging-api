@@ -100,6 +100,10 @@ class APIClient {
             });
 
             localStorage.setItem(CONFIG.TOKEN_KEY, data.access);
+            // Persist the rotated refresh token issued during refresh.
+            if (data.refresh) {
+                localStorage.setItem(CONFIG.REFRESH_TOKEN_KEY, data.refresh);
+            }
             return true;
         } catch (error) {
             console.error('Token refresh failed:', error);

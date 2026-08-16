@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from accounts.authentication import current_workspace
 from .models import Group, GroupMember, Message, MessageReadReceipt, MessageReaction
 
 User = get_user_model()
@@ -328,7 +329,13 @@ class GroupSerializer(serializers.ModelSerializer):
         return group
 
     def validate_name(self, value):
-        """Check if group with this name already exists"""
-        if Group.objects.filter(name__iexact=value).exists():
+        """Check if a group with this name already exists (within the same workspace)."""
+        request = self.context.get('request')
+        workspace = current_workspace(request) if request else None
+
+        qs = Group.objects.filter(name__iexact=value)
+        if workspace is not None:
+            qs = qs.filter(workspace=workspace)
+        if qs.exists():
             raise serializers.ValidationError(f"Group with name '{value}' already exists")
         return value

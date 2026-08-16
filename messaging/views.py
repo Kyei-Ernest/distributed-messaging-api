@@ -15,6 +15,10 @@ from .pagination import MessagePagination  # Import custom pagination
 import redis
 import json
 
+from django_redis import get_redis_connection
+
+from accounts.authentication import current_workspace
+
 
 from .models import Group, GroupMember, Message, MessageReadReceipt, UserProfile, MessageReaction
 from .serializers import GroupSerializer, GroupMemberSerializer, MessageSerializer
@@ -34,8 +38,16 @@ GroupMembershipTag = ["GroupMembership"]
 # ============================================================================
 
 def get_redis_client():
-    """Get Redis client for publishing events"""
-    return redis.from_url(settings.CACHES['default']['LOCATION'])
+    """Get a Redis client for publishing events.
+
+    Reuses Django's configured Redis pool (``django_redis``) rather than opening a
+    brand-new connection per call, falling back to a direct client from the cache URL.
+    """
+    try:
+        return get_redis_connection("default")
+    except Exception:
+        # Fallback: build a client directly from the cache location.
+        return redis.from_url(settings.CACHES['default']['LOCATION'])
 
 
 def broadcast_to_redis(event_type, data):
@@ -167,8 +179,19 @@ class GroupViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsGroupMember()]
         return super().get_permissions()
 
+    def get_queryset(self):
+        qs = Group.objects.all()
+        # Multi-tenant scoping: a resolved workspace limits groups to that tenant.
+        workspace = current_workspace(self.request)
+        if workspace is not None:
+            qs = qs.filter(workspace=workspace)
+        return qs
+
     def perform_create(self, serializer):
-        group = serializer.save(created_by=self.request.user)
+        group = serializer.save(
+            created_by=self.request.user,
+            workspace=current_workspace(self.request),
+        )
         logger.info(f"Group '{group.name}' created by {self.request.user.username}")
 
     @extend_schema(
@@ -398,11 +421,23 @@ class MessageViewSet(viewsets.ModelViewSet):
         Pagination will be applied automatically by DRF.
         """
         user = self.request.user
-        queryset = Message.objects.filter(
-            Q(message_type="group", group__groupmember__user=user)
-            | Q(message_type="private", sender=user)
-            | Q(message_type="private", recipient=user)
-        ).distinct().select_related("sender", "recipient", "group")
+        workspace = current_workspace(self.request)
+
+        if workspace is not None:
+            # Multi-tenant: only messages within the request's workspace, in addition
+            # to the existing membership/sender/recipient check (defense in depth).
+            queryset = Message.objects.filter(
+                Q(message_type="group", group__workspace=workspace, group__groupmember__user=user)
+                | Q(message_type="private", sender=user, sender__workspace=workspace)
+                | Q(message_type="private", recipient=user, recipient__workspace=workspace)
+            )
+        else:
+            queryset = Message.objects.filter(
+                Q(message_type="group", group__groupmember__user=user)
+                | Q(message_type="private", sender=user)
+                | Q(message_type="private", recipient=user)
+            )
+        queryset = queryset.distinct().select_related("sender", "recipient", "group")
 
         # Filter by group
         group_id = self.request.query_params.get("group")
@@ -590,12 +625,21 @@ class MessageViewSet(viewsets.ModelViewSet):
                 read_message_ids.append(str(message.id))
                 marked_count += 1
                 
-                # Broadcast read receipt via Redis
+                # Broadcast read receipt via Redis, routed only to conversation participants.
+                msg_target = {}
+                if message.message_type == 'group' and message.group_id:
+                    msg_target['group_id'] = str(message.group_id)
+                else:
+                    # Private message: notify the conversation partner (plus echo to reader).
+                    msg_target['sender_id'] = str(message.sender_id)
+                    msg_target['recipient_id'] = str(message.recipient_id) if message.recipient_id else ''
+
                 broadcast_to_redis('message_read', {
                     'message_id': str(message.id),
                     'read_by': str(request.user.id),
                     'read_by_username': request.user.username,
-                    'timestamp': timezone.now().isoformat()
+                    'timestamp': timezone.now().isoformat(),
+                    **msg_target,
                 })
         
         # CRITICAL: Broadcast updated unread counts to this user AFTER marking as read
@@ -875,7 +919,8 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response({"status": "typing indicator sent"}, status=status.HTTP_200_OK)
     
 
-from django.db.models import Q, Max, Count, OuterRef, Subquery, F
+from django.db.models import Q, Max, Count, OuterRef, Subquery, F, Case, When, Window, UUIDField
+from django.db.models.functions import RowNumber
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -983,19 +1028,33 @@ def get_chat_list(request):
     # PART 2: PRIVATE CHATS (Optimized with bulk queries)
     # ===================================================================
     
-    private_messages = Message.objects.filter(
-        Q(message_type='private', sender=user) |
-        Q(message_type='private', recipient=user)
-    ).select_related('sender', 'recipient')
+    latest_partner_messages = (
+        Message.objects.filter(
+            Q(message_type='private', sender=user) |
+            Q(message_type='private', recipient=user)
+        )
+        .annotate(
+            partner_id=Case(
+                When(sender_id=user.pk, then=F('recipient_id')),
+                default=F('sender_id'),
+                output_field=UUIDField(),
+            ),
+            rn=Window(
+                expression=RowNumber(),
+                partition_by=[F('partner_id')],
+                order_by=[F('created_at').desc(), F('id').desc()],
+            ),
+        )
+        .filter(rn=1)
+        .select_related('sender', 'recipient')
+    )
     
     # Build conversation partner IDs and last message per partner in bulk
     partner_last_msg = {}  # partner_id -> last message
     partner_unread = {}    # partner_id -> unread count
     
-    for msg in private_messages.iterator():
-        other_id = str(msg.recipient_id) if msg.sender_id == user.id else str(msg.sender_id)
-        if other_id not in partner_last_msg or msg.created_at > partner_last_msg[other_id].created_at:
-            partner_last_msg[other_id] = msg
+    for msg in latest_partner_messages:
+        partner_last_msg[str(msg.partner_id)] = msg
     
     if partner_last_msg:
         partner_ids = list(partner_last_msg.keys())
@@ -1056,13 +1115,12 @@ def generate_avatar_color(name):
 
 
 def is_user_online(user_id):
-    """Check if user is online via Redis tracking set maintained by WebSocket server"""
-    import redis as redis_module
-    
+    """Check if user is online via the Redis tracking set maintained by the WebSocket server."""
     try:
-        redis_client = redis_module.from_url(settings.CACHES['default']['LOCATION'])
-        return redis_client.sismember('online_users', str(user_id))
-    except:
+        redis_client = get_redis_connection("default")
+        return bool(redis_client.sismember('online_users', str(user_id)))
+    except Exception as e:
+        logger.warning(f"Failed to check online status for user {user_id}: {e}")
         return False
     
 from rest_framework.viewsets import GenericViewSet
@@ -1089,6 +1147,14 @@ class UserPublicKeyViewSet(GenericViewSet):
     """
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = User.objects.all()
+        # Multi-tenant scoping: only expose users within the request's workspace.
+        workspace = current_workspace(self.request)
+        if workspace is not None:
+            qs = qs.filter(workspace=workspace)
+        return qs
     
     @action(detail=False, methods=['post'], url_path='me/public-key')
     def upload_public_key(self, request):
@@ -1158,6 +1224,10 @@ def get_bulk_public_keys(request):
         return Response({'error': 'user_ids required'}, status=status.HTTP_400_BAD_REQUEST)
     
     users = User.objects.filter(id__in=user_ids, public_key__isnull=False)
+    # Multi-tenant scoping: only return keys for users within the request's workspace.
+    workspace = current_workspace(request)
+    if workspace is not None:
+        users = users.filter(workspace=workspace)
     
     public_keys = {
         str(user.id): user.public_key

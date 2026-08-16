@@ -1,0 +1,15 @@
+{
+  "name": "@dms/chat-react",
+  "version": "0.1.0",
+  "description": "React SDK for the Distributed Messaging embeddable chat widget.",
+  "main": "src/ChatWidget.jsx",
+  "scripts": {
+    "test": "echo \"no tests yet; see frontend/widget for the vanilla widget tests\""
+  },
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "dependencies": {
+    "dms-chat": "^1.0.0"
+  }
+}

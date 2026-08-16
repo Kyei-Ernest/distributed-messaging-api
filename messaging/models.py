@@ -19,6 +19,14 @@ class Group(models.Model):
     created_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="created_groups"
     )
+    # Multi-tenant scoping: groups belong to a workspace, isolating them per tenant.
+    workspace = models.ForeignKey(
+        'accounts.Workspace',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="groups"
+    )
     members = models.ManyToManyField( User, through="GroupMember", related_name="member_groups")
 
     created_at = models.DateTimeField(auto_now_add=True)

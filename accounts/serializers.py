@@ -1,7 +1,10 @@
 from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+
+from .models import Workspace
 
 User = get_user_model()
 
@@ -49,14 +52,39 @@ class TokenRefreshCustomSerializer(serializers.Serializer):
         refresh_token = attrs.get("refresh")
 
         try:
-            # Verify & get new access token
+            # Verify the provided refresh token
             refresh = RefreshToken(refresh_token)
+
+            # Rotate: blacklist the old refresh token and issue a fresh pair.
+            # This ensures a refresh token can only be used once.
+            try:
+                refresh.blacklist()
+            except TokenError:
+                # Already blacklisted (e.g. reused) — fail closed by rejecting the request.
+                raise serializers.ValidationError("Invalid or expired refresh token.")
+
+            user_id = refresh.payload.get(
+                settings.SIMPLE_JWT.get("USER_ID_CLAIM", "user_id")
+            )
+            user = User.objects.get(pk=user_id)
+
+            new_refresh = RefreshToken.for_user(user)
             data = {
-                "access": str(refresh.access_token)
+                "access": str(new_refresh.access_token),
+                "refresh": str(new_refresh),
             }
             return data
-        except TokenError:
+        except (TokenError, User.DoesNotExist):
             raise serializers.ValidationError("Invalid or expired refresh token.")
+
+class WorkspaceSerializer(serializers.ModelSerializer):
+    """A tenant / client application (API key is returned once at creation only)."""
+
+    class Meta:
+        model = Workspace
+        fields = ['id', 'name', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
 
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
