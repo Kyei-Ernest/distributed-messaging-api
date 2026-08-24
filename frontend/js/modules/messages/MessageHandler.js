@@ -331,11 +331,68 @@ class MessageHandler {
     }
 
     openForwardModal(messageId) {
-        // Trigger forward modal in UI
         const modal = document.getElementById('forward-modal');
-        if (modal) {
-            modal.dataset.messageId = messageId;
-            modal.classList.add('show');
+        if (!modal) return;
+        modal.dataset.messageId = messageId;
+        modal.classList.add('show');
+
+        this.renderForwardList('');
+        this.bindForwardControls();
+    }
+
+    /** Union of chats, groups and users as forward targets (deduped by id). */
+    forwardTargets() {
+        const seen = new Set();
+        const targets = [];
+        const push = (id, name, type) => {
+            if (!id || seen.has(String(id))) return;
+            seen.add(String(id));
+            targets.push({ id: String(id), name: name || 'Chat', type });
+        };
+        (this.app.chatManager?.allChats || []).forEach(c =>
+            push(c.id, c.name || c.username, c.type === 'group' ? 'group' : 'user'));
+        (this.app.groupManager?.myGroups || []).forEach(g => push(g.id, g.name, 'group'));
+        (this.app.userManager?.users || []).forEach(u => push(u.id, u.username, 'user'));
+        return targets;
+    }
+
+    renderForwardList(filterText) {
+        const container = document.getElementById('forward-chats-list');
+        if (!container) return;
+        const needle = (filterText || '').toLowerCase();
+        const items = this.forwardTargets()
+            .filter(t => !needle || t.name.toLowerCase().includes(needle));
+
+        if (!items.length) {
+            container.innerHTML = '<div class="empty-list" style="padding:24px;text-align:center;color:var(--text-muted)">No matching chats</div>';
+            return;
         }
+
+        container.innerHTML = '';
+        items.forEach(t => {
+            const row = document.createElement('div');
+            row.className = 'forward-chat-item';
+            row.dataset.chatId = t.id;
+            row.dataset.chatType = t.type;
+            row.innerHTML = `
+                <div class="avatar avatar-sm" style="background:${UI.generateAvatarColor(t.name)}">
+                    <span>${UI.getInitials(t.name)}</span>
+                </div>
+                <div class="member-name">${UI.escapeHtml(t.name)}</div>
+                <span class="forward-type">${t.type === 'group' ? 'Group' : 'Direct'}</span>
+            `;
+            row.addEventListener('click', () => {
+                this.app.confirmForward(t.id, t.type);
+            });
+            container.appendChild(row);
+        });
+    }
+
+    bindForwardControls() {
+        if (this._forwardBound) return; // bind once per session
+        this._forwardBound = true;
+
+        document.getElementById('forward-search')?.addEventListener('input',
+            UI.debounce((e) => this.renderForwardList(e.target.value), 150));
     }
 }

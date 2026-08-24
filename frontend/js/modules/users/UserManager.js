@@ -73,6 +73,11 @@ class UserManager {
             const item = UI.createUserItem(user, currentUserId);
             if (item) {
                 item.addEventListener('click', () => this.app.openPrivateChat(user));
+                // Avatar tap opens the profile modal instead of the chat.
+                item.querySelector('.avatar')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.app.showUserInfoModal(user);
+                });
                 container.appendChild(item);
             }
         });

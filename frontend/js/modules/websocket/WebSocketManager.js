@@ -85,7 +85,7 @@ class WebSocketManager {
         if (data && data.content && !data.last_message) {
             data.last_message = data.content;
         }
-
+        this.notifyIncoming(data);
         this.app.messageHandler?.handleIncomingMessage(data);
     }
 
@@ -103,7 +103,29 @@ class WebSocketManager {
             data.id = data.sender_id;
         }
 
+        this.notifyIncoming(data);
         this.app.messageHandler?.handleIncomingMessage(data);
+    }
+
+    // Desktop notification (tab hidden) + optional sound for others' messages.
+    notifyIncoming(data) {
+        try {
+            if (!data || data.sender_id === this.app.currentUser?.id) return;
+            if (window.dmsWantsSound?.()) window.dmsPlayPing();
+            if (document.hidden && typeof this.app.profileManager?.notificationManager?.showMessageNotification === 'function') {
+                this.app.profileManager.notificationManager.showMessageNotification({
+                    sender_username: data.sender_username || data.username,
+                    content: data.content,
+                    id: data.id,
+                });
+            } else if (document.hidden && window.notificationManager) {
+                window.notificationManager.showMessageNotification({
+                    sender_username: data.sender_username || data.username,
+                    content: data.content,
+                    id: data.id,
+                });
+            }
+        } catch (e) { /* notifications must never break delivery */ }
     }
 
     handleTypingIndicator(data) {

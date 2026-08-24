@@ -318,6 +318,71 @@ class MessagingApp {
                 }
             });
         });
+
+        // --------------------------------------------------------------
+        // Previously-dead controls, now wired
+        // --------------------------------------------------------------
+
+        // Hamburger inside the search overlay: reveal sidebar (mobile) / close overlay
+        document.getElementById('hamburger-menu-btn')?.addEventListener('click', () => {
+            document.querySelector('.sidebar')?.classList.add('mobile-open');
+            document.getElementById('global-search-overlay')?.classList.add('hidden');
+        });
+
+        // "Send Message" inside the User Profile modal -> open that chat
+        document.getElementById('modal-message-btn')?.addEventListener('click', () => {
+            const user = this.userModalUser;
+            document.getElementById('user-info-modal')?.classList.remove('show');
+            if (user) this.openPrivateChat(user);
+        });
+
+        // Group member rows open the profile modal (delegated; items carry data-user-id)
+        document.getElementById('info-members-list')?.addEventListener('click', (e) => {
+            const row = e.target.closest('[data-user-id]');
+            if (!row) return;
+            const userId = row.getAttribute('data-user-id');
+            const user =
+                this.users?.find(u => String(u.id) === String(userId)) ||
+                this.allChats?.find(c => String(c.id) === String(userId)) ||
+                { id: userId, username: row.getAttribute('data-username') || 'User' };
+            this.showUserInfoModal(user);
+        });
+
+        // Escape closes any open modal / overlay / context menu
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+            document.getElementById('global-search-overlay')?.classList.add('hidden');
+            document.getElementById('image-viewer')?.classList.add('hidden');
+            document.getElementById('mobile-menu-dropdown')?.classList.add('hidden');
+            document.getElementById('emoji-picker')?.classList.remove('show');
+        });
+    }
+
+    showUserInfoModal(user) {
+        if (!user) return;
+        this.userModalUser = user;
+
+        const name = user.username || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
+        const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+        set('modal-user-name', name);
+        set('modal-user-initials', UI.getInitials(name));
+        set('modal-user-username', `@${user.username || name}`);
+        set('modal-user-email', user.email || '—');
+        set('modal-user-status', user.is_online ? 'Online' : 'Offline');
+
+        const joined = document.getElementById('modal-user-joined');
+        if (joined) {
+            joined.textContent = user.date_joined
+                ? new Date(user.date_joined).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
+                : '—';
+        }
+
+        const avatar = document.getElementById('modal-user-avatar');
+        if (avatar) avatar.style.background = UI.generateAvatarColor(name);
+
+        document.getElementById('user-info-modal')?.classList.add('show');
     }
 
     setupNetworkListeners() {
@@ -417,12 +482,16 @@ class MessagingApp {
             const response = await api.getMessages(filters);
             const messages = response.results || response || [];
 
-            // Mark messages as read
+            // Mark messages as read (honors the read-receipts privacy setting)
+            const receiptsEnabled = (() => {
+                try { return window.settingsManager ? settingsManager.get('readReceipts') !== false : true; }
+                catch (e) { return true; }
+            })();
             const unreadIds = messages
                 .filter(m => String(m.sender_id) !== String(this.currentUser?.id))
                 .map(m => m.message_id || m.id)
                 .filter(Boolean);
-            if (unreadIds.length > 0) {
+            if (receiptsEnabled && unreadIds.length > 0) {
                 api.markMessagesAsRead(unreadIds).catch(() => {});
             }
 

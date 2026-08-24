@@ -63,6 +63,9 @@ class AuthManager {
         const username = document.getElementById('register-username').value.trim();
         const email = document.getElementById('register-email').value.trim();
         const password = document.getElementById('register-password').value;
+        // Optional profile fields — sent through when provided.
+        const firstName = document.getElementById('register-firstname')?.value.trim() || '';
+        const lastName = document.getElementById('register-lastname')?.value.trim() || '';
 
         if (!username || !email || !password) {
             UI.showToast('Please fill in all fields', 'error');
@@ -70,7 +73,8 @@ class AuthManager {
         }
 
         try {
-            await api.register({ username, email, password });
+            await api.register({ username, email, password,
+                first_name: firstName, last_name: lastName });
             UI.showToast('Registration successful! Please login.', 'success');
 
             document.getElementById('register-form').classList.add('hidden');

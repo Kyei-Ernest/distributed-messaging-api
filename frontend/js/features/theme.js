@@ -103,30 +103,51 @@ class SettingsManager {
     set(key, value) { this.settings[key] = value; this.saveSettings(); }
 }
 
-// Notification Manager
+// Notification Manager — honors the Settings-modal toggles
 class NotificationManager {
     constructor() {
-        this.permission = Notification.permission;
+        this.permission = ('Notification' in window) ? Notification.permission : 'denied';
+    }
+
+    enabled() {
+        try {
+            return window.settingsManager ? settingsManager.get('desktopNotifications') !== false : true;
+        } catch (e) { return true; }
     }
 
     async requestPermission() {
-        if (this.permission === 'default' && 'Notification' in window) {
+        if (this.enabled() && this.permission === 'default' && 'Notification' in window) {
             this.permission = await Notification.requestPermission();
         }
         return this.permission === 'granted';
     }
 
     show(title, options = {}) {
+        if (!this.enabled()) return;
+        // Respect message-preview: strip body when preview is off.
+        let opts = options;
+        try {
+            if (window.settingsManager && settingsManager.get('messagePreview') === false) {
+                const { body, ...rest } = options;
+                opts = rest;
+            }
+        } catch (e) { /* defaults apply */ }
+
         if (this.permission === 'granted' && !document.hasFocus()) {
-            const notification = new Notification(title, { icon: '/icon.svg', badge: '/icon.svg', ...options });
+            const notification = new Notification(title, { icon: '/icon.svg', badge: '/icon.svg', ...opts });
             notification.onclick = () => { window.focus(); notification.close(); };
             return notification;
         }
     }
 
     showMessageNotification(message) {
-        return this.show(`New message from ${message.sender_username}`, {
-            body: message.content,
+        const showBody = (() => {
+            try {
+                return window.settingsManager ? settingsManager.get('messagePreview') !== false : true;
+            } catch (e) { return true; }
+        })();
+        return this.show(`New message from ${message.sender_username || 'Someone'}`, {
+            body: showBody ? (message.content || '').slice(0, 120) : undefined,
             tag: message.id,
             icon: '/icon.svg'
         });
