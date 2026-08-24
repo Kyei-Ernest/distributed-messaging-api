@@ -3,6 +3,7 @@ from config import settings
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -469,6 +470,19 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Save message and broadcast in real-time to all online recipients"""
+        # Entitlement check: enforce a per-workspace daily message quota when set.
+        workspace = current_workspace(self.request)
+        if workspace is not None and workspace.message_quota is not None:
+            from accounts.models import WorkspaceDailyUsage
+            today = timezone.localdate()
+            usage = WorkspaceDailyUsage.objects.filter(
+                workspace=workspace, date=today
+            ).values_list('message_count', flat=True).first() or 0
+            if usage >= workspace.message_quota:
+                raise PermissionDenied(
+                    f"Workspace daily message quota ({workspace.message_quota}) exceeded."
+                )
+
         message = serializer.save(sender=self.request.user)
         
         # Broadcast via Redis for Go WebSocket server

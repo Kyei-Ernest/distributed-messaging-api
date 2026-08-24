@@ -18,7 +18,7 @@ from drf_spectacular.utils import (
     extend_schema_view
 )
 
-from .authentication import generate_api_key, current_workspace
+from .authentication import generate_api_key, current_workspace, IsWorkspaceAPIKey
 from .models import Workspace
 from .permissions import IsSelfOrAdmin
 from .serializers import (
@@ -177,6 +177,77 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             'exceeded': bool(quota is not None and total >= quota),
             'daily': daily,
         })
+
+
+# =====================================================
+# Server-to-server provisioning (workspace API key)
+# =====================================================
+
+class ProvisionUserView(APIView):
+    """
+    Create an end-user inside the authenticating workspace. Authenticated with a
+    workspace API key (``X-Workspace-ID`` + ``X-Workspace-Key``). The created user
+    is scoped to that workspace, so all their data is tenant-isolated.
+    """
+
+    permission_classes = [IsWorkspaceAPIKey]
+
+    @extend_schema(
+        summary='Provision a workspace user',
+        description='Create a user belonging to the authenticating workspace (server-to-server).',
+        request=UserCreateSerializer,
+        responses={201: UserSerializer},
+        tags=['Provisioning']
+    )
+    def post(self, request):
+        serializer = UserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.workspace = request.workspace
+        user.save(update_fields=['workspace'])
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+
+class ProvisionGroupView(APIView):
+    """
+    Create a group (channel) inside the authenticating workspace. The owner must be
+    an existing user of the same workspace; they become the group admin.
+    """
+
+    permission_classes = [IsWorkspaceAPIKey]
+
+    @extend_schema(
+        summary='Provision a workspace group',
+        description='Create a group owned by a workspace user (server-to-server).',
+        tags=['Provisioning']
+    )
+    def post(self, request):
+        workspace = request.workspace
+        name = request.data.get('name')
+        owner_id = request.data.get('owner_id')
+        description = request.data.get('description', '')
+
+        if not name or not owner_id:
+            return Response(
+                {'detail': 'name and owner_id are required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Lazy import avoids an import cycle with the messaging app.
+        from messaging.models import Group, GroupMember
+
+        owner = User.objects.filter(pk=owner_id, workspace=workspace).first()
+        if not owner:
+            return Response(
+                {'detail': 'owner_id must be a user in this workspace.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        group = Group.objects.create(
+            name=name, description=description, created_by=owner, workspace=workspace
+        )
+        GroupMember.objects.create(user=owner, group=group, is_admin=True)
+        return Response({'id': str(group.id), 'name': group.name}, status=status.HTTP_201_CREATED)
 
 
 # =====================================================
