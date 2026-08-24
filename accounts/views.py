@@ -135,6 +135,17 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     serializer_class = WorkspaceSerializer
     permission_classes = [permissions.IsAdminUser]
 
+    @extend_schema(
+        summary='List workspaces', tags=['Workspaces'],
+        responses=WorkspaceSerializer,
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='Create workspace (returns the API key once)', tags=['Workspaces'],
+        request=WorkspaceSerializer, responses=WorkspaceSerializer,
+    )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -146,6 +157,22 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         data = WorkspaceSerializer(workspace).data
         data['api_key'] = raw_key  # shown only once
         return Response(data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(summary='Fetch a workspace', tags=['Workspaces'])
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(summary='Update a workspace', tags=['Workspaces'])
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(summary='Partially update a workspace', tags=['Workspaces'])
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @extend_schema(summary='Delete a workspace', tags=['Workspaces'])
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
     @extend_schema(
         summary='Regenerate workspace API key',
@@ -217,6 +244,33 @@ class WorkspaceWebhookViewSet(viewsets.ModelViewSet):
 
     serializer_class = WorkspaceWebhookSerializer
     permission_classes = [IsWorkspaceAPIKey]
+
+    @extend_schema(summary='List webhook subscriptions', tags=['Webhooks'])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='Create subscription (signing secret returned once)',
+        tags=['Webhooks'],
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @extend_schema(summary='Fetch a webhook subscription', tags=['Webhooks'])
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(summary='Update a webhook subscription', tags=['Webhooks'])
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(summary='Partially update a webhook subscription', tags=['Webhooks'])
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @extend_schema(summary='Delete a webhook subscription', tags=['Webhooks'])
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         workspace = current_workspace(self.request)
@@ -295,7 +349,13 @@ class ProvisionGroupView(APIView):
 
     @extend_schema(
         summary='Provision a workspace group',
-        description='Create a group owned by a workspace user (server-to-server).',
+        description='Create a group owned by a workspace user (server-to-server). Owner must be a user of the authenticating workspace and becomes its admin.',
+        request={'application/json': {'type': 'object', 'required': ['name', 'owner_id'],
+                                      'properties': {'name': {'type': 'string'},
+                                                     'owner_id': {'type': 'string', 'format': 'uuid'},
+                                                     'description': {'type': 'string'}}}},
+        responses={'201': {'type': 'object', 'properties': {
+            'id': {'type': 'string', 'format': 'uuid'}, 'name': {'type': 'string'}}}},
         tags=['Provisioning']
     )
     def post(self, request):

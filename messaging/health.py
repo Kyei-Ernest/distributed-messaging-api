@@ -1,6 +1,7 @@
 import logging
 from django.db import connection
 from django.core.cache import cache
+from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +16,16 @@ class HealthCheckView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
+    @extend_schema(
+        summary='Platform health check',
+        description='Probes database and Redis cache; returns 503 when unhealthy.',
+        responses={200: {'type': 'object', 'properties': {
+            'status': {'type': 'string'},
+            'services': {'type': 'object', 'properties': {
+                'database': {'type': 'string'}, 'redis_cache': {'type': 'string'}}}}},
+            503: {'type': 'object'}},
+        tags=['Health']
+    )
     def get(self, request, *args, **kwargs):
         health_status = {
             "status": "healthy",

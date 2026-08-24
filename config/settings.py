@@ -87,6 +87,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Per-tenant CORS must precede corsheaders so it can answer preflights for
+    # workspace-listed origins before corsheaders rejects them as unknown.
+    'accounts.middleware.WorkspaceOriginMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -96,9 +99,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Per-tenant CORS: adds ACAO headers for origins listed on a Workspace
-    # (plug-and-play embeds without redeploying global CORS config).
-    'accounts.middleware.WorkspaceOriginMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

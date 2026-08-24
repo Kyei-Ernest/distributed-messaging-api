@@ -1,5 +1,6 @@
 # messaging/serializers.py - UPDATED with E2EE fields
 
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from accounts.authentication import current_workspace
@@ -8,6 +9,7 @@ from .models import Group, GroupMember, Message, MessageReadReceipt, MessageReac
 User = get_user_model()
 
 
+@extend_schema_serializer(component_name='ChatUser')
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
     has_encryption = serializers.SerializerMethodField()

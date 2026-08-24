@@ -33,9 +33,15 @@ func LoadConfig() *Config {
 		},
 	}
 
-	// Fail fast in production rather than silently signing tokens with a known default.
-	if cfg.Environment == "production" && cfg.JWTSecret == "your-jwt-secret-key" {
-		log.Fatal("JWT_SECRET must be configured in production (rejecting known default secret)")
+	// Fail fast rather than silently rejecting every Django-minted token:
+	// the JWT is HS256-signed with Django's SECRET_KEY, so JWT_SECRET MUST
+	// equal it. A stale placeholder here looks like "401 on every connect".
+	if cfg.JWTSecret == "your-jwt-secret-key" ||
+		cfg.JWTSecret == "change-this-to-match-django-secret" {
+		if cfg.Environment == "production" {
+			log.Fatal("JWT_SECRET must be configured in production (rejecting known default secret)")
+		}
+		log.Println("WARNING: JWT_SECRET is a placeholder — every WebSocket auth will fail until it equals Django SECRET_KEY")
 	}
 
 	return cfg

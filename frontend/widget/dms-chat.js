@@ -91,9 +91,11 @@
         return headers;
     }
 
-    /** Sec-WebSocket-Protocol subprotocols offered to the Go WS server. */
+    /** Sec-WebSocket-Protocol subprotocols offered to the Go WS server.
+     *  RFC 6455 forbids spaces in subprotocol tokens, so the JWT rides the
+     *  server-supported `token.` prefix — still never in the URL. */
     function buildWsSubprotocols(token) {
-        return ['chat', 'Bearer ' + (token || '')];
+        return ['chat', 'token.' + (token || '')];
     }
 
     /** Parse raw WS frame payload(s) into an array of event objects. */

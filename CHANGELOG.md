@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Browser WebSocket auth was broken**: clients offered `Bearer <jwt>` as a subprotocol, but RFC 6455 forbids spaces in protocol tokens (browsers throw pre-connect). SPA and widget now send the server-supported `token.<jwt>` form.
+- **Silent JWT secret mismatch**: Go server now logs a loud startup warning (hard-fails in production) when `JWT_SECRET` is a known placeholder; dev env secret synced to Django `SECRET_KEY`.
+- Per-workspace CORS preflights: `WorkspaceOriginMiddleware` now answers tenant-origin OPTIONS directly (was short-circuited by corsheaders), moved first in the stack with 60s origin cache.
+
+### Security
+- Dependency CVE sweep via pip-audit — bumped Django 6.0.8, DRF 3.15.2, cryptography 50.0.0, requests 2.33.0, pytest 9.0.3; zero known vulnerabilities remain; full suite green post-bump.
+- OpenAPI schema quality for machine consumers: all 55 operations documented, duplicate `User` components disambiguated (`AccountsUser`/`ChatUser`), explicit request/response schemas on provisioning endpoints.
+
 ### Added
+- `docs/VERIFICATION_REPORT.md`: multi-approach audit (32 Django tests, go vet/test, 16 widget tests, Bandit, pip-audit, 30-check live adversarial E2E incl. tenancy isolation, CSWSH, signed webhook delivery, quota enforcement) with honest enterprise-readiness gaps (G1–G8).
 - **Plug-and-play integration layer**
   - `python manage.py bootstrap_workspace` — one-command tenant bootstrap printing the API key once, with optional daily quota and embed origins.
   - **Outbound webhooks**: `WorkspaceWebhook` subscriptions (`/api/webhooks/`, API-key auth) with HMAC-SHA256-signed deliveries (`X-DMS-Signature`/`X-DMS-Timestamp`), event filtering (`*` / `message_created`), a signed `test-fire` action, and fail-safe threaded delivery that can never break messaging. `messaging/signals.py` now emits `message_created` (content withheld for encrypted messages).

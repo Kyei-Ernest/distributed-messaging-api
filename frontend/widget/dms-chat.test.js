@@ -60,9 +60,9 @@ t('authHeaders: sets Bearer Authorization and Content-Type', () => {
 });
 
 // --- buildWsSubprotocols ---------------------------------------------------
-t('buildWsSubprotocols: token rides in a Bearer subprotocol (never the URL)', () => {
+t('buildWsSubprotocols: token rides in a token. subprotocol (never the URL)', () => {
     const sp = dms.buildWsSubprotocols('tok');
-    assert.deepStrictEqual(sp, ['chat', 'Bearer tok']);
+    assert.deepStrictEqual(sp, ['chat', 'token.tok']);
 });
 
 // --- parseIncomingFrames ---------------------------------------------------

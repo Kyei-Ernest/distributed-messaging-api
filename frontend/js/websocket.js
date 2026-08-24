@@ -21,7 +21,9 @@ class WebSocketClient {
         try {
             // Pass the JWT as a Sec-WebSocket-Protocol subprotocol so it never
             // appears in the URL (and thus never leaks into proxy/access logs).
-            this.ws = new WebSocket(this.url, ['chat', `Bearer ${token}`]);
+            // RFC 6455 subprotocol values must be valid tokens (no spaces), so
+            // we use the server-supported `token.` prefix rather than `Bearer `.
+            this.ws = new WebSocket(this.url, ['chat', `token.${token}`]);
             this.setupEventHandlers();
         } catch (error) {
             console.error('WebSocket connection failed:', error);
