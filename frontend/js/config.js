@@ -3,9 +3,11 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 
 // In production (behind Nginx), derive API/WS URLs from the current location.
 // In local development, use explicit dev server ports.
+// NOTE: dev API runs on 8002 because port 8000 is occupied by another local
+// project; move it back to 8000 once that process is stopped.
 const CONFIG = {
     API_BASE_URL: isLocal
-        ? 'http://127.0.0.1:8000/api'
+        ? 'http://127.0.0.1:8002/api'
         : `${window.location.protocol}//${window.location.host}/api`,
     WS_URL: isLocal
         ? 'ws://127.0.0.1:8001/ws'

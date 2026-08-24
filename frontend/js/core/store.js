@@ -101,9 +101,14 @@
     function persisted(key, initial, reviver) {
         var stored = null;
         try { stored = localStorage.getItem(key); } catch (e) { /* private mode */ }
-        var value = stored != null
-            ? (reviver ? reviver(JSON.parse(stored)) : JSON.parse(stored))
-            : initial;
+        var value = initial;
+        if (stored != null) {
+            try {
+                value = reviver ? reviver(JSON.parse(stored)) : JSON.parse(stored);
+            } catch (e) {
+                value = stored; // legacy non-JSON value written by older code
+            }
+        }
         var sig = signal(value);
         var origSet = sig[1];
         sig[1] = function (next) {
@@ -149,9 +154,11 @@
 
     window.AppStore = {
         slices: slices,
-        get: function (slice, key) { return slices[slice][key](); },
-        set: function (slice, key, value) { slices[slice][key](value); },
-        update: function (slice, key, fn) { slices[slice][key](function (prev) { return fn(prev); }); },
-        subscribe: function (slice, key, fn) { return slices[slice][key].subscribe(fn); },
+        get: function (slice, key) { return slices[slice][key][0](); },
+        set: function (slice, key, value) { slices[slice][key][1](value); },
+        update: function (slice, key, fn) {
+            slices[slice][key][1](function (prev) { return fn(prev); });
+        },
+        subscribe: function (slice, key, fn) { return slices[slice][key][0].subscribe(fn); },
     };
 })();
