@@ -127,6 +127,10 @@ class ScrollManager {
     checkScroll() {
         const isAtBottom = this.container.scrollHeight - this.container.scrollTop - this.container.clientHeight < 100;
         this.btn.classList.toggle('hidden', isAtBottom);
+        // Back at the bottom: clear the missed-messages badge.
+        if (isAtBottom && typeof window.dmsClearMissedCount === 'function') {
+            window.dmsClearMissedCount();
+        }
     }
 
     scrollToBottom(smooth = true) {

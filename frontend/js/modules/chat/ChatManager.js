@@ -57,6 +57,13 @@ class ChatManager {
         const container = document.getElementById('chats-list');
         if (!container) return;
 
+        // FLIP capture: remember current vertical positions by chat id so the
+        // rebuild can animate rows sliding to their new spots (bump-to-top).
+        const prevTops = new Map();
+        container.querySelectorAll('.list-item[data-chat-id]').forEach(el => {
+            prevTops.set(String(el.dataset.chatId), el.getBoundingClientRect().top);
+        });
+
         container.innerHTML = '';
         const query = searchQuery.toLowerCase().trim();
 
@@ -86,6 +93,27 @@ class ChatManager {
             const item = this.createChatItem(chat);
             container.appendChild(item);
         });
+
+        // FLIP apply: slide each row from its old offset to identity.
+        if (prevTops.size) {
+            requestAnimationFrame(() => {
+                container.querySelectorAll('.list-item[data-chat-id]').forEach(el => {
+                    const oldTop = prevTops.get(String(el.dataset.chatId));
+                    if (oldTop == null) return;
+                    const dy = oldTop - el.getBoundingClientRect().top;
+                    if (Math.abs(dy) < 4) return;
+                    el.style.transition = 'none';
+                    el.style.transform = `translateY(${dy}px)`;
+                    requestAnimationFrame(() => {
+                        el.style.transition = 'transform 320ms cubic-bezier(.22,1,.36,1)';
+                        el.style.transform = '';
+                        el.addEventListener('transitionend', () => {
+                            el.style.transition = '';
+                        }, { once: true });
+                    });
+                });
+            });
+        }
     }
 
     createChatItem(chat) {
@@ -233,6 +261,18 @@ class ChatManager {
             // Update chat preview
             chat.last_message = data.content || data.last_message || '';
             chat.last_message_time = data.timestamp || data.created_at || new Date().toISOString();
+
+            // Live unread: only for messages from others in non-active chats.
+            const fromOthers = String(data.sender_id || data.sender?.id || '') !== String(this.app.currentUser?.id);
+            const isActive = this.app.currentChat && (
+                String(this.app.currentChat.id) === String(chat.id));
+            if (fromOthers && !isActive && data.id && !data.last_message_only) {
+                const next = (this.unreadCounts.all_chats[chat.id] ?? chat.unread_count ?? 0) + 1;
+                this.unreadCounts.all_chats[chat.id] = next;
+                if (chat.type === 'group') this.unreadCounts.groups[chat.id] = next;
+                else this.unreadCounts.users[chat.id] = next;
+                this.updateTotalUnreadBadge();
+            }
 
             // Move updated chat to top 
             const index = this.allChats.indexOf(chat);

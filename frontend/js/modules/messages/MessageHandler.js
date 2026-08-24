@@ -10,6 +10,12 @@ class MessageHandler {
         this.messageIds = new Set();
         this.replyingToMessage = null;
         this.tempMessages = new Map();
+        this.missedCount = 0;
+        // Scrolling back to the bottom clears the FAB missed-count badge.
+        window.dmsClearMissedCount = () => {
+            this.missedCount = 0;
+            this.renderFabBadge();
+        };
     }
 
     async handleSendMessage(e) {
@@ -143,11 +149,20 @@ class MessageHandler {
         }
         this.messageIds.add(message.id);
 
+        // Date separator when the day changes (WhatsApp-style chips)
+        const msgDate = new Date(message.created_at || Date.now());
+        const dayKey = msgDate.toDateString();
+        if (container.dataset.lastDay !== dayKey) {
+            container.appendChild(UI.createDateDivider(msgDate));
+            container.dataset.lastDay = dayKey;
+        }
+
         const messageEl = UI.createMessage(message, this.app.currentUser?.id);
 
         // Check if previous message is from same sender
         const lastMessage = container.lastElementChild;
-        if (lastMessage && String(lastMessage.dataset.senderId) === String(message.sender_id || message.sender?.id)) {
+        if (lastMessage && lastMessage.classList.contains('message') &&
+            String(lastMessage.dataset.senderId) === String(message.sender_id || message.sender?.id)) {
             messageEl.classList.add('consecutive');
             // Remove avatar from this consecutive message to clean up UI
             const avatar = messageEl.querySelector('.avatar');
@@ -159,14 +174,52 @@ class MessageHandler {
         }
 
         container.appendChild(messageEl);
-        this.scrollToBottom();
+        this.scrollForNewMessage(message);
+    }
+
+    /**
+     * Live-feel scrolling: follow the conversation only when the user is at
+     * (or near) the bottom or it's their own message; otherwise park the
+     * message behind the jump-to-latest FAB with a missed-count badge.
+     */
+    scrollForNewMessage(message) {
+        const isOwn = String(message.sender_id || message.sender?.id) === String(this.app.currentUser?.id);
+        const atBottom = window.scrollManager ? window.scrollManager.isAtBottom() : true;
+
+        if (isOwn || atBottom) {
+            this.missedCount = 0;
+            this.renderFabBadge();
+            window.scrollManager ? window.scrollManager.scrollToBottom() : this.scrollToBottom();
+        } else {
+            this.missedCount = (this.missedCount || 0) + 1;
+            this.renderFabBadge();
+        }
+    }
+
+    renderFabBadge() {
+        const btn = document.getElementById('scroll-to-bottom');
+        if (!btn) return;
+        let badge = btn.querySelector('.fab-count');
+        if (!this.missedCount) {
+            badge?.remove();
+            return;
+        }
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'fab-count';
+            btn.appendChild(badge);
+        }
+        badge.textContent = this.missedCount > 99 ? '99+' : this.missedCount;
+        // Re-trigger pop animation on each increment
+        badge.style.animation = 'none';
+        void badge.offsetWidth;
+        badge.style.animation = '';
     }
 
     scrollToBottom() {
-        const container = document.getElementById('messages-container');
-        if (container) {
-            container.scrollTop = container.scrollHeight;
-        }
+        document.getElementById('messages-container')?.scrollTo({
+            top: document.getElementById('messages-container').scrollHeight
+        });
     }
 
     handleReply(messageId) {

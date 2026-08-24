@@ -133,6 +133,10 @@ class WebSocketManager {
 
         if (!this.app.currentChat) return;
 
+        // WhatsApp-style header state: subtitle becomes "typing…" while the
+        // peer types in the OPEN conversation, restoring itself afterwards.
+        this.setHeaderTypingState(data);
+
         const typingEl = document.getElementById('typing-indicator');
         if (!typingEl) return;
 
@@ -168,6 +172,39 @@ class WebSocketManager {
         const chatId = data.group_id || data.user_id;
         if (chatId) {
             this.app.chatManager?.updateTypingPreview?.(chatId, data.username, data.is_typing);
+        }
+    }
+
+    setHeaderTypingState(data) {
+        const subtitle = document.getElementById('chat-subtitle');
+        if (!subtitle) return;
+
+        // Only react to typing inside the currently open conversation.
+        const chat = this.app.currentChat;
+        const matches = data.group_id
+            ? chat.type === 'group' && String(chat.id) === String(data.group_id)
+            : chat.type === 'private' &&
+              (String(data.user_id) === String(chat.id) ||
+               (!data.group_id && String(data.recipient_id ?? '') === String(chat.id)));
+        if (!matches) return;
+
+        if (data.is_typing) {
+            if (!subtitle.dataset.original) {
+                subtitle.dataset.original = subtitle.textContent || '';
+                subtitle.classList.add('typing-state');
+            }
+            subtitle.textContent = 'typing…';
+            clearTimeout(this._subtitleTimer);
+            // Safety restore in case the stop event never arrives.
+            this._subtitleTimer = setTimeout(() => this.setHeaderTypingState(
+                { ...data, is_typing: false }), 6000);
+        } else {
+            clearTimeout(this._subtitleTimer);
+            if (subtitle.dataset.original !== undefined) {
+                subtitle.textContent = subtitle.dataset.original;
+                delete subtitle.dataset.original;
+                subtitle.classList.remove('typing-state');
+            }
         }
     }
 
