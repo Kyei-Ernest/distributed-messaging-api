@@ -28,19 +28,28 @@ type Client struct {
 	mu       sync.RWMutex
 }
 
+// Broker is the subset of the Redis layer the manager depends on. An
+// interface so routing logic is unit-testable without a live Redis.
+type Broker interface {
+	Publish(channel string, message []byte) error
+	AcquirePresence(userID string) error
+	ReleasePresence(userID string) error
+	GetOnlineUserIDs() ([]string, error)
+}
+
 type ConnectionManager struct {
-	clients    map[string]*Client
+	sessions   map[string]map[*Client]struct{} // userID -> concurrent devices
 	groups     map[string]map[string]*Client
 	Register   chan *Client
 	Unregister chan *Client
 	Broadcast  chan []byte
 	mu         sync.RWMutex
-	pubsub     *pubsub.RedisPubSub
+	pubsub     Broker
 }
 
 func NewConnectionManager(ps *pubsub.RedisPubSub) *ConnectionManager {
 	cm := &ConnectionManager{
-		clients:    make(map[string]*Client),
+		sessions:   make(map[string]map[*Client]struct{}),
 		groups:     make(map[string]map[string]*Client),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
@@ -70,45 +79,71 @@ func (cm *ConnectionManager) registerClient(client *Client) {
 	defer cm.mu.Unlock()
 
 	client.Groups = make(map[string]bool)
-	cm.clients[client.ID] = client
-	log.Printf("Client registered: %s (Total: %d)", client.Username, len(cm.clients))
-
-	// Publish user online status to Redis
-	cm.publishUserStatus(client.ID, client.Username, "online")
-
-	// Track presence in the shared Redis set that Django reads for the chat list.
-	if err := cm.pubsub.AddOnlineUser(client.ID); err != nil {
-		log.Printf("Failed to add user %s to online_users set: %v", client.Username, err)
+	if cm.sessions[client.ID] == nil {
+		cm.sessions[client.ID] = make(map[*Client]struct{})
 	}
+	firstSession := len(cm.sessions[client.ID]) == 0
+	cm.sessions[client.ID][client] = struct{}{}
+	log.Printf("Client registered: %s (%d sessions)", client.Username, cm.totalSessions())
+
+	// Announce + flip shared presence only on the global first session so
+	// multi-device/multi-node users never flicker offline mid-session.
+	if firstSession {
+		cm.publishUserStatus(client.ID, client.Username, "online")
+		if err := cm.pubsub.AcquirePresence(client.ID); err != nil {
+			log.Printf("Failed to acquire presence for %s: %v", client.Username, err)
+		}
+	}
+}
+
+func (cm *ConnectionManager) totalSessions() int {
+	n := 0
+	for _, s := range cm.sessions {
+		n += len(s)
+	}
+	return n
 }
 
 func (cm *ConnectionManager) unregisterClient(client *Client) {
 	cm.mu.Lock()
-	defer cm.mu.Unlock()
 
-	if _, ok := cm.clients[client.ID]; ok {
-		// Remove from all groups
-		client.mu.RLock()
-		for groupID := range client.Groups {
-			if groupClients, exists := cm.groups[groupID]; exists {
-				delete(groupClients, client.ID)
-				if len(groupClients) == 0 {
-					delete(cm.groups, groupID)
-				}
+	sessions := cm.sessions[client.ID]
+	if sessions == nil {
+		cm.mu.Unlock()
+		return // unknown or already-removed session; nothing to tear down
+	}
+	if _, live := sessions[client]; !live {
+		cm.mu.Unlock()
+		return
+	}
+
+	// Remove from all groups
+	client.mu.RLock()
+	for groupID := range client.Groups {
+		if groupClients, exists := cm.groups[groupID]; exists {
+			delete(groupClients, client.ID)
+			if len(groupClients) == 0 {
+				delete(cm.groups, groupID)
 			}
 		}
-		client.mu.RUnlock()
+	}
+	client.mu.RUnlock()
 
-		close(client.Send)
-		delete(cm.clients, client.ID)
-		log.Printf("Client unregistered: %s (Total: %d)", client.Username, len(cm.clients))
+	delete(sessions, client)
+	lastSession := len(sessions) == 0
+	if lastSession {
+		delete(cm.sessions, client.ID)
+	}
+	total := cm.totalSessions()
+	cm.mu.Unlock()
 
-		// Publish user offline status to Redis
+	close(client.Send) // owned solely by this session; safe to close exactly once
+	log.Printf("Client unregistered: %s (%d sessions)", client.Username, total)
+
+	if lastSession {
 		cm.publishUserStatus(client.ID, client.Username, "offline")
-
-		// Remove from the shared presence set.
-		if err := cm.pubsub.RemoveOnlineUser(client.ID); err != nil {
-			log.Printf("Failed to remove user %s from online_users set: %v", client.Username, err)
+		if err := cm.pubsub.ReleasePresence(client.ID); err != nil {
+			log.Printf("Failed to release presence for %s: %v", client.Username, err)
 		}
 	}
 }
@@ -150,32 +185,32 @@ func (cm *ConnectionManager) GetOnlineUsers() []string {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
-	users := make([]string, 0, len(cm.clients))
-	for userID := range cm.clients {
+	users := make([]string, 0, len(cm.sessions))
+	for userID := range cm.sessions {
 		users = append(users, userID)
 	}
 	return users
 }
 
-// IsUserOnline checks if a specific user is online
+// IsUserOnline checks if a specific user has at least one live local session.
 func (cm *ConnectionManager) IsUserOnline(userID string) bool {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
-	_, exists := cm.clients[userID]
-	return exists
+	return len(cm.sessions[userID]) > 0
 }
 
 func (cm *ConnectionManager) broadcastMessage(message []byte) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
-	for _, client := range cm.clients {
-		select {
-		case client.Send <- message:
-		default:
-			close(client.Send)
-			delete(cm.clients, client.ID)
+	for _, sessions := range cm.sessions {
+		for client := range sessions {
+			select {
+			case client.Send <- message:
+			default:
+				log.Printf("Slow consumer %s: broadcast frame dropped", client.Username)
+			}
 		}
 	}
 }
@@ -230,11 +265,13 @@ func (cm *ConnectionManager) BroadcastToGroup(groupID string, message []byte) {
 	}
 }
 
+// SendToUser fans a message out to EVERY live session of the user — all
+// devices on this node (other nodes are reached via Redis republishing).
 func (cm *ConnectionManager) SendToUser(userID string, message []byte) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
-	if client, exists := cm.clients[userID]; exists {
+	for client := range cm.sessions[userID] {
 		select {
 		case client.Send <- message:
 			log.Printf("Message sent to user %s", client.Username)
@@ -683,8 +720,10 @@ func (cm *ConnectionManager) Shutdown() {
 	defer cm.mu.Unlock()
 
 	log.Println("Closing all client connections...")
-	for _, client := range cm.clients {
-		client.Conn.Close()
+	for _, sessions := range cm.sessions {
+		for client := range sessions {
+			client.Conn.Close()
+		}
 	}
 	log.Println("All connections closed")
 }
@@ -864,40 +903,44 @@ func (c *Client) handlePing() {
 	c.SendMessage(pongMsg)
 }
 
+// publishTargetedEnvelope republishes a client-originated targeted event to
+// Redis so EVERY node (including this one) receives and routes it to locally
+// held recipients. This is what makes typing indicators and read receipts
+// correct across replicas — direct local routing only reached same-node peers.
+func (c *Client) publishTargetedEvent(eventType string, data map[string]interface{}) {
+	envelope, err := json.Marshal(map[string]interface{}{
+		"type": eventType,
+		"data": data,
+	})
+	if err != nil {
+		log.Printf("Failed to marshal %s envelope: %v", eventType, err)
+		return
+	}
+	if err := c.Manager.pubsub.Publish("messaging_events", envelope); err != nil {
+		log.Printf("Failed to republish %s to Redis: %v", eventType, err)
+	}
+}
+
 func (c *Client) handleTypingIndicator(data map[string]interface{}) {
 	isTyping, _ := data["is_typing"].(bool)
 
 	if groupID, ok := data["group_id"].(string); ok {
-		indicator := models.OutgoingMessage{
-			Type: models.EventTypingIndicator,
-			Data: map[string]interface{}{
-				"user_id":   c.ID,
-				"username":  c.Username,
-				"group_id":  groupID,
-				"is_typing": isTyping,
-			},
-			Timestamp: time.Now().Format(time.RFC3339),
-		}
-
-		msgBytes, _ := json.Marshal(indicator)
-		c.Manager.BroadcastToGroup(groupID, msgBytes)
-		log.Printf("✅ Typing indicator from %s in group %s", c.Username, groupID)
+		c.publishTargetedEvent("typing_indicator", map[string]interface{}{
+			"user_id":   c.ID,
+			"username":  c.Username,
+			"group_id":  groupID,
+			"is_typing": isTyping,
+		})
+		log.Printf("✅ Typing indicator from %s in group %s (republished)", c.Username, groupID)
 
 	} else if recipientID, ok := data["recipient_id"].(string); ok {
-		indicator := models.OutgoingMessage{
-			Type: models.EventTypingIndicator,
-			Data: map[string]interface{}{
-				"user_id":      c.ID,
-				"username":     c.Username,
-				"recipient_id": recipientID,
-				"is_typing":    isTyping,
-			},
-			Timestamp: time.Now().Format(time.RFC3339),
-		}
-
-		msgBytes, _ := json.Marshal(indicator)
-		c.Manager.SendToUser(recipientID, msgBytes)
-		log.Printf("✅ Private typing indicator from %s to %s", c.Username, recipientID)
+		c.publishTargetedEvent("typing_indicator", map[string]interface{}{
+			"user_id":      c.ID,
+			"username":     c.Username,
+			"recipient_id": recipientID,
+			"is_typing":    isTyping,
+		})
+		log.Printf("✅ Private typing indicator from %s to %s (republished)", c.Username, recipientID)
 	}
 }
 
@@ -908,24 +951,17 @@ func (c *Client) handleMarkRead(data map[string]interface{}) {
 		return
 	}
 
-	readReceipt := models.OutgoingMessage{
-		Type: models.EventMessageRead,
-		Data: map[string]interface{}{
-			"message_id":       messageID,
-			"read_by":          c.ID,
-			"read_by_username": c.Username,
-			"timestamp":        time.Now().Format(time.RFC3339),
-			// Routing hints supplied by the client so receipts reach only participants.
-			"group_id":     data["group_id"],
-			"recipient_id": data["recipient_id"],
-			"sender_id":    data["sender_id"],
-		},
-		Timestamp: time.Now().Format(time.RFC3339),
-	}
-
-	msgBytes, _ := json.Marshal(readReceipt)
-	c.Manager.routeReadEvent(c.ID, readReceipt.Data, msgBytes, true)
-	log.Printf("✅ Read receipt from %s for message %s", c.Username, messageID)
+	c.publishTargetedEvent("message_read", map[string]interface{}{
+		"message_id":       messageID,
+		"read_by":          c.ID,
+		"read_by_username": c.Username,
+		"timestamp":        time.Now().Format(time.RFC3339),
+		// Routing hints supplied by the client so receipts reach only participants.
+		"group_id":     data["group_id"],
+		"recipient_id": data["recipient_id"],
+		"sender_id":    data["sender_id"],
+	})
+	log.Printf("✅ Read receipt from %s for message %s (republished)", c.Username, messageID)
 }
 
 // handleRequestOnlineUsers sends the current online users list to the client

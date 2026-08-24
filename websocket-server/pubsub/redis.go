@@ -61,8 +61,43 @@ func (r *RedisPubSub) Subscribe(handler MessageHandler) {
 	}
 }
 
+// AcquirePresence increments a shared per-user connection counter and marks
+// the user online only on the 0→1 transition. The counter lives in Redis so
+// MULTI-NODE deployments stay correct: a user with sockets on two nodes only
+// leaves online_users when BOTH nodes have released.
+func (r *RedisPubSub) AcquirePresence(userID string) error {
+	count, err := r.client.Incr(r.ctx, "presence:count:"+userID).Result()
+	if err != nil {
+		return err
+	}
+	if count == 1 {
+		return r.client.SAdd(r.ctx, "online_users", userID).Err()
+	}
+	return nil
+}
+
+// ReleasePresence decrements the shared counter and removes the user from
+// online_users on the 1→0 transition. Defensive floor at zero heals drift
+// from crashed nodes until full TTL-based presence lands (HARDENING_PLAN W4).
+func (r *RedisPubSub) ReleasePresence(userID string) error {
+	count, err := r.client.Decr(r.ctx, "presence:count:"+userID).Result()
+	if err != nil {
+		return err
+	}
+	if count <= 0 {
+		if err := r.client.Set(r.ctx, "presence:count:"+userID, 0, 0).Err(); err != nil {
+			return err
+		}
+		return r.client.SRem(r.ctx, "online_users", userID).Err()
+	}
+	return nil
+}
+
 // AddOnlineUser adds a user ID to the online_users tracking set so Django
 // (sharing the same Redis logical DB) can report accurate presence.
+//
+// Deprecated: prefer AcquirePresence/ReleasePresence reference counting,
+// which is multi-node and multi-device correct.
 func (r *RedisPubSub) AddOnlineUser(userID string) error {
 	return r.client.SAdd(r.ctx, "online_users", userID).Err()
 }

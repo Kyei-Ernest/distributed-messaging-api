@@ -2988,3 +2988,164 @@ input[type="password"] {
         scroll-behavior: auto !important;
     }
 }
+
+/* ============================================================================
+   DESIGN SYSTEM v3 - GARNISH
+   Depth, motion and micro-delight on top of v2 tokens. Additive only.
+   ========================================================================== */
+
+/* Theme switches cross-fade instead of snapping */
+body,
+.sidebar,
+.chat-main,
+.chat-header,
+.message-input-container {
+    transition: background-color var(--dur-slow) var(--ease-out),
+                border-color var(--dur-slow) var(--ease-out);
+}
+
+::selection {
+    background: var(--accent-primary);
+    color: #fff;
+}
+
+/* --- Message bubbles: tail, lift, entrance ---------------------------------- */
+.message .message-bubble {
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.message:hover .message-bubble {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Speech-bubble nub via masked square */
+.message:not(.own) .message-bubble::before,
+.message.own .message-bubble::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    background: inherit;
+}
+
+.message:not(.own) .message-bubble::before {
+    left: -5px;
+    clip-path: polygon(0 0, 100% 100%, 100% 0);
+}
+
+.message.own .message-bubble::before {
+    right: -5px;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+@keyframes message-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.messages-list .message {
+    animation: message-in var(--dur-base) var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .messages-list .message { animation: none; }
+}
+
+/* --- Avatars: subtle gradient sheen ------------------------------------------ */
+.avatar {
+    background-image: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0) 55%);
+}
+
+.avatar,
+.btn-icon,
+.tab-btn {
+    transition-property: background-color, color, transform, box-shadow;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-out);
+}
+
+.tab-btn:hover { transform: translateY(-1px); }
+
+/* --- Sidebar items: slide-in accent bar --------------------------------------- */
+.list-container .chat-item,
+.list-container .group-item,
+.list-container .user-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.list-container .chat-item::before,
+.list-container .group-item::before,
+.list-container .user-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent-primary);
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform var(--dur-base) var(--ease-out);
+}
+
+.list-container .chat-item:hover::before,
+.list-container .group-item:hover::before,
+.list-container .user-item:hover::before,
+.list-container .active::before {
+    transform: scaleY(1);
+}
+
+/* --- Unread badge: gentle pulse when it appears -------------------------------- */
+@keyframes badge-pop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+
+.badge,
+#total-unread-badge,
+.unread-count {
+    animation: badge-pop var(--dur-base) var(--ease-out);
+}
+
+/* --- Connection pill: drop from top edge ---------------------------------------- */
+.connection-status {
+    transform-origin: top center;
+    animation: pill-drop var(--dur-slow) var(--ease-out);
+}
+
+@keyframes pill-drop {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Scroll-to-bottom FAB: float + shadow bloom on hover ------------------------- */
+.scroll-bottom-btn {
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(6px);
+}
+
+.scroll-bottom-btn:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+/* --- Login screen: ambient brand glow --------------------------------------------- */
+.login-container .logo svg:first-of-type {
+    filter: drop-shadow(0 4px 14px var(--accent-glow));
+}
+
+.auth-form {
+    backdrop-filter: blur(10px);
+}
+
+/* --- Typing dots: livelier wave ------------------------------------------------------ */
+.typing-dot {
+    animation-duration: 1s;
+}

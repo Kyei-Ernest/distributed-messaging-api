@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  django:
+    name: Django tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run suite
+        env:
+          SECRET_KEY: ci-only-secret-key-not-used-in-prod-0123456789abcdef
+          DEBUG: 'True'
+        run: python manage.py test --parallel 1
+
+  go:
+    name: Go vet + tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: websocket-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: websocket-server/go.sum
+      - run: go vet ./...
+      - run: go test ./...
+
+  widget:
+    name: Widget unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/widget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node dms-chat.test.js
+
+  security:
+    name: Static security & dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install auditors
+        run: |
+          python -m venv venv
+          venv/bin/pip install --quiet bandit pip-audit -r requirements.txt
+      - name: Bandit (medium+ severity must be zero)
+        run: venv/bin/python -m bandit -r accounts messaging config -lll -q
+      - name: pip-audit (no known CVEs)
+        run: venv/bin/python -m pip_audit -r requirements.txt --no-deps
+      - name: Secret scan
+        run: |
+          ! grep -rnE "(api_key|secret|password|token)[[:space:]]*=[[:space:]]*['\"][A-Za-z0-9]{16,}['\"]" \
+            accounts messaging config websocket-server \
+            --include='*.py' --include='*.go' | grep -v test

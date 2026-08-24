@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Distributed hardening (W1 + W4-lite from HARDENING_PLAN.md)**
+  - **Cross-node targeted events (W1)**: typing indicators and read receipts originated over raw WebSocket are now republished to Redis, so every node routes them to its local recipients — replicas no longer drop same-conversation events for peers on other nodes.
+  - **Multi-device correctness**: the connection manager now tracks concurrent sessions per user (`sessions map`), fans messages out to *all* devices, and shared-Redis presence counters (`presence:count:*`) flip `online_users` only on global 0↔1 transitions — fixes both the false-offline bug and the second-device-overwrites-first delivery bug.
+  - **Webhook retries**: deliveries retry up to 3 attempts with exponential backoff (0.5s/2s) on failures; permanent failure logged.
+  - **CI pipeline** (`.github/workflows/ci.yml`): Django suite, go vet+tests, widget tests, Bandit medium+ gate, pip-audit CVE gate, secret scan — the full audit battery on every push/PR.
+  - Go manager gained a `Broker` interface and miniredis-backed unit tests for routing, presence ref-counting, and republish envelope shapes.
+- **Frontend garnish (design system v3)**: speech-bubble tails + entrance animation, avatar gradient sheen, sidebar accent-bar slide-ins, unread badge pop, connection pill drop-in, floating scroll-to-bottom FAB with backdrop blur, login logo glow, theme-switch cross-fade, text selection theming — all additive CSS honoring reduced-motion.
+
 ### Fixed
 - **Browser WebSocket auth was broken**: clients offered `Bearer <jwt>` as a subprotocol, but RFC 6455 forbids spaces in protocol tokens (browsers throw pre-connect). SPA and widget now send the server-supported `token.<jwt>` form.
 - **Silent JWT secret mismatch**: Go server now logs a loud startup warning (hard-fails in production) when `JWT_SECRET` is a known placeholder; dev env secret synced to Django `SECRET_KEY`.
