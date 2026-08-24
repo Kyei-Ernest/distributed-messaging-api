@@ -27,6 +27,11 @@ class WorkspacePrincipal:
         self.workspace = workspace
 
     @property
+    def pk(self):
+        # Stable identity for DRF throttling caches (UserRateThrottle).
+        return str(self.workspace.id)
+
+    @property
     def is_anonymous(self):
         return False
 

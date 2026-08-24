@@ -19,7 +19,8 @@ from drf_spectacular.utils import (
 )
 
 from .authentication import generate_api_key, current_workspace, IsWorkspaceAPIKey
-from .models import Workspace
+from .models import Workspace, WorkspaceWebhook
+from .webhooks import emit_workspace_event
 from .permissions import IsSelfOrAdmin
 from .serializers import (
     UserSerializer,
@@ -27,6 +28,7 @@ from .serializers import (
     LoginSerializer,
     TokenRefreshCustomSerializer,
     WorkspaceSerializer,
+    WorkspaceWebhookSerializer,
 )
 
 User = get_user_model()
@@ -177,6 +179,81 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             'exceeded': bool(quota is not None and total >= quota),
             'daily': daily,
         })
+
+    @extend_schema(
+        summary='Workspace allowed origins',
+        description='Browser origins allowed to embed this workspace (per-tenant CORS).',
+        request={'application/json': {'type': 'object', 'properties': {
+            'allowed_origins': {'type': 'array', 'items': {'type': 'string'}}}}},
+        tags=['Workspaces']
+    )
+    @action(detail=True, methods=['get', 'put'], url_path='origins')
+    def origins(self, request, pk=None):
+        workspace = self.get_object()
+        if request.method == 'PUT':
+            origins = request.data.get('allowed_origins')
+            if not isinstance(origins, list) or not all(isinstance(o, str) for o in origins):
+                return Response(
+                    {'detail': 'allowed_origins must be a list of origin strings.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            workspace.allowed_origins = origins
+            workspace.save(update_fields=['allowed_origins'])
+        return Response({
+            'workspace_id': str(workspace.id),
+            'allowed_origins': workspace.allowed_origins,
+        })
+
+
+# =====================================================
+# Workspace webhooks (plug-and-play event subscriptions)
+# =====================================================
+
+class WorkspaceWebhookViewSet(viewsets.ModelViewSet):
+    """
+    Manage outbound webhook subscriptions for the authenticating workspace
+    (API-key auth). Deliveries are HMAC-SHA256 signed — see accounts/webhooks.py.
+    """
+
+    serializer_class = WorkspaceWebhookSerializer
+    permission_classes = [IsWorkspaceAPIKey]
+
+    def get_queryset(self):
+        workspace = current_workspace(self.request)
+        if workspace is None:
+            return WorkspaceWebhook.objects.none()
+        return workspace.webhooks.all()
+
+    def perform_create(self, serializer):
+        import secrets as secrets_lib
+        webhook = serializer.save(
+            workspace=current_workspace(self.request),
+            secret=secrets_lib.token_urlsafe(32),
+        )
+        # Surface the signing secret exactly once.
+        self._created_secret = webhook.secret
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        secret = getattr(self, '_created_secret', None)
+        if secret is not None:
+            response.data['secret'] = secret  # shown once; never returned again
+        return response
+
+    @extend_schema(
+        summary='Send a test event',
+        description='Fires a signed "webhook.test" delivery to this subscription URL.',
+        tags=['Webhooks']
+    )
+    @action(detail=True, methods=['post'], url_path='test')
+    def test_fire(self, request, pk=None):
+        webhook = self.get_object()
+        emit_workspace_event(
+            webhook.workspace,
+            'webhook.test',
+            {'webhook_id': str(webhook.id), 'message': 'It works!'},
+        )
+        return Response({'detail': f'Test event queued for {webhook.url}'})
 
 
 # =====================================================

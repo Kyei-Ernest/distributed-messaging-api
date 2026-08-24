@@ -96,6 +96,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Per-tenant CORS: adds ACAO headers for origins listed on a Workspace
+    # (plug-and-play embeds without redeploying global CORS config).
+    'accounts.middleware.WorkspaceOriginMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

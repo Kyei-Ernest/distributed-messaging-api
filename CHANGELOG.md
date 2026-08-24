@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Plug-and-play integration layer**
+  - `python manage.py bootstrap_workspace` — one-command tenant bootstrap printing the API key once, with optional daily quota and embed origins.
+  - **Outbound webhooks**: `WorkspaceWebhook` subscriptions (`/api/webhooks/`, API-key auth) with HMAC-SHA256-signed deliveries (`X-DMS-Signature`/`X-DMS-Timestamp`), event filtering (`*` / `message_created`), a signed `test-fire` action, and fail-safe threaded delivery that can never break messaging. `messaging/signals.py` now emits `message_created` (content withheld for encrypted messages).
+  - **Per-workspace CORS**: `Workspace.allowed_origins` + `accounts.middleware.WorkspaceOriginMiddleware` — embedding origins work without redeploying global CORS config.
+  - `PUT /api/workspaces/{id}/origins/`; `WorkspacePrincipal` gained `pk` so API-key requests throttle correctly.
+  - `docs/INTEGRATION.md` — 5-minute guide: bootstrap → provision → embed widget → receive signed webhooks; includes receiver-side signature verification and app-mounting guidance.
 - **Frontend overhaul (modern vanilla, no build step)**
   - Reactive core (`js/core/store.js`): signals, rAF-batched effects, computed values, localStorage-persisted slices, and a global `AppStore` state tree (ui/connection/presence/unread/typing).
   - DOM kit (`js/core/dom.js`): `h()` hyperscript builder, `renderList` keyed list reconciliation (no more wholesale `innerHTML` rebuilds), focus-trap helper for modals.

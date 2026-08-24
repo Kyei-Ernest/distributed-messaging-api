@@ -23,6 +23,9 @@ class Workspace(models.Model):
     # Optional daily message entitlement (None = unlimited). Used by the usage
     # endpoint for plan/entitlement billing.
     message_quota = models.BigIntegerField(null=True, blank=True)
+    # Browser origins allowed to embed this workspace's widget / call its APIs
+    # from another origin (per-tenant CORS). Global origins still apply.
+    allowed_origins = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.name
@@ -59,6 +62,33 @@ class WorkspaceDailyUsage(models.Model):
 
     def __str__(self):
         return f"{self.workspace_id} {self.date}: {self.message_count}"
+
+
+class WorkspaceWebhook(models.Model):
+    """Outbound webhook subscription for a workspace.
+
+    When workspace-scoped events occur (e.g. ``message_created``), the platform
+    POSTs a JSON payload to ``url`` signed with ``secret`` (HMAC-SHA256 in
+    ``X-DMS-Signature``). Delivery is best-effort and never blocks messaging.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.CASCADE, related_name='webhooks'
+    )
+    url = models.URLField(max_length=2048)
+    # Shared secret used to SIGN outbound deliveries (not verified inbound),
+    # so it must be stored retrievably. Rotate by recreating the subscription.
+    secret = models.CharField(max_length=128)
+    # Event types to receive; ['*'] receives everything.
+    events = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.workspace_id} -> {self.url}"
 
 
 class User(AbstractUser):

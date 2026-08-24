@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from .models import Workspace
+from .models import Workspace, WorkspaceWebhook
 
 User = get_user_model()
 
@@ -84,6 +84,27 @@ class WorkspaceSerializer(serializers.ModelSerializer):
         model = Workspace
         fields = ['id', 'name', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+class WorkspaceWebhookSerializer(serializers.ModelSerializer):
+    """Outbound webhook subscription. ``secret`` is shown once, at creation,
+    injected by the view — never serialized by this class."""
+
+    class Meta:
+        model = WorkspaceWebhook
+        fields = ['id', 'url', 'events', 'is_active', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_events(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("events must be a list of event types.")
+        allowed = {'*', 'message_created'}
+        unknown = [e for e in value if e not in allowed]
+        if unknown:
+            raise serializers.ValidationError(
+                f"Unknown events: {unknown}. Allowed: {sorted(allowed)}."
+            )
+        return value or ['*']
 
 
 class LoginSerializer(serializers.Serializer):

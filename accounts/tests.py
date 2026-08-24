@@ -249,3 +249,128 @@ class WorkspaceTests(APITestCase):
         resp2 = self.client.get(reverse("workspace-usage", args=[workspace.id]))
         self.assertEqual(resp2.data["total_messages_7d"], 150)
         self.assertTrue(resp2.data["exceeded"])
+
+
+class WorkspaceWebhookTests(APITestCase):
+    """Plug-and-play webhook subscriptions (API-key authenticated)."""
+
+    def setUp(self):
+        import secrets as secrets_lib
+        from .models import WorkspaceWebhook
+
+        self.Webhook = WorkspaceWebhook
+        self.workspace = Workspace.objects.create(name='Hooked Inc')
+        self.raw_key = secrets_lib.token_urlsafe(32)
+        self.workspace.issue_api_key(self.raw_key)
+        self.auth_headers = {
+            'HTTP_X_WORKSPACE_ID': str(self.workspace.id),
+            'HTTP_X_WORKSPACE_KEY': self.raw_key,
+        }
+        self.list_url = reverse('webhook-list')
+
+    def test_create_webhook_returns_secret_once(self):
+        resp = self.client.post(self.list_url, {
+            'url': 'https://hooks.acme.com/dms',
+            'events': ['message_created'],
+        }, format='json', **self.auth_headers)
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        secret = resp.data.get('secret')
+        self.assertTrue(secret)
+        # Never returned again.
+        detail = self.client.get(
+            reverse('webhook-detail', args=[resp.data['id']]),
+            **self.auth_headers,
+        )
+        self.assertNotIn('secret', detail.data)
+
+    def test_requires_workspace_api_key(self):
+        resp = self.client.post(self.list_url, {'url': 'https://x.com/h'})
+        self.assertIn(resp.status_code, {status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN})
+
+    def test_invalid_event_rejected(self):
+        resp = self.client.post(self.list_url, {
+            'url': 'https://x.com/h',
+            'events': ['not_a_real_event'],
+        }, format='json', **self.auth_headers)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_test_fire_queues_delivery(self):
+        create = self.client.post(self.list_url, {
+            'url': 'https://hooks.acme.com/dms', 'events': ['*'],
+        }, format='json', **self.auth_headers)
+        url = reverse('webhook-test-fire', args=[create.data['id']])
+        resp = self.client.post(url, **self.auth_headers)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_emit_filters_by_subscribed_events_and_signs_payload(self):
+        """emit_workspace_event signs with HMAC-SHA256 and honors event filters."""
+        from unittest.mock import patch, MagicMock
+        from .webhooks import emit_workspace_event, sign_payload
+
+        hook = self.Webhook.objects.create(
+            workspace=self.workspace,
+            url='https://hooks.acme.com/dms',
+            secret='whsec_test_123',
+            events=['message_created'],  # does NOT include webhook.test
+        )
+        with patch('accounts.webhooks.requests.post') as mock_post:
+            mock_post.return_value = MagicMock(status_code=200)
+
+            # Subscribed event: delivered and correctly signed.
+            emit_workspace_event(self.workspace, 'message_created', {'hello': 1})
+            # Unsubscribed event: not delivered.
+            emit_workspace_event(self.workspace, 'webhook.test', {'nope': 1})
+
+            self.assertEqual(mock_post.call_count, 1)
+            kwargs = mock_post.call_args.kwargs
+            ts = kwargs['headers']['X-DMS-Timestamp']
+            sig = kwargs['headers']['X-DMS-Signature']
+            expected = 'sha256=' + sign_payload('whsec_test_123', ts, kwargs['data'])
+            self.assertEqual(sig, expected)
+
+
+class BootstrapWorkspaceCommandTests(APITestCase):
+    """`manage.py bootstrap_workspace` — one-tenant bootstrap from the CLI."""
+
+    def test_creates_workspace_with_hashed_key_and_quota(self):
+        from io import StringIO
+        from django.core.management import call_command
+
+        out = StringIO()
+        call_command('bootstrap_workspace', name='CLI Tenant',
+                     daily_quota=500, stdout=out)
+        ws = Workspace.objects.get(name='CLI Tenant')
+        self.assertEqual(ws.message_quota, 500)
+        self.assertTrue(ws.api_key_hash)
+        self.assertIn(str(ws.id), out.getvalue())
+
+    def test_duplicate_name_fails_cleanly(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        Workspace.objects.create(name='Dup Co')
+        with self.assertRaises(SystemExit):
+            call_command('bootstrap_workspace', name='Dup Co', stdout=StringIO())
+
+
+class WorkspaceOriginMiddlewareTests(APITestCase):
+    """Per-workspace CORS for embedded integrations."""
+
+    EMBED_ORIGIN = 'https://embeds.acme.com'
+
+    def setUp(self):
+        self.workspace = Workspace.objects.create(name='Embed Co')
+
+    def _get(self):
+        return self.client.get('/api/health/', HTTP_ORIGIN=self.EMBED_ORIGIN)
+
+    def test_allowed_origin_gets_cors_headers(self):
+        self.workspace.allowed_origins = [self.EMBED_ORIGIN]
+        self.workspace.save()
+        resp = self._get()
+        self.assertEqual(resp.headers.get('Access-Control-Allow-Origin'), self.EMBED_ORIGIN)
+
+    def test_unknown_origin_gets_no_cors_headers(self):
+        resp = self._get()
+        self.assertIsNone(resp.headers.get('Access-Control-Allow-Origin'))

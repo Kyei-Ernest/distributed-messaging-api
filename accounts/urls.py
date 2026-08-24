@@ -6,6 +6,7 @@ from .views import (
     LogoutView,
     TokenRefreshView,
     WorkspaceViewSet,
+    WorkspaceWebhookViewSet,
     ProvisionUserView,
     ProvisionGroupView,
 )
@@ -13,6 +14,7 @@ from .views import (
 router = SimpleRouter()
 router.register(r"users", UserViewSet, basename="user")
 router.register(r"workspaces", WorkspaceViewSet, basename="workspace")
+router.register(r"webhooks", WorkspaceWebhookViewSet, basename="webhook")
 
 urlpatterns = [
     # Auth
