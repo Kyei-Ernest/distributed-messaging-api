@@ -1,10 +1,10 @@
-# 💬 Distributed Messaging System
+# Distributed Messaging System
 
 A **hybrid real-time messaging platform** that combines **Django** for business logic and RESTful APIs with a high-performance **Go WebSocket server** for real-time communication. Designed for scalability, low latency, and clean separation of concerns.
 
 ---
 
-## ✨ Features
+## Features
 
 - **Real-Time Messaging** — Instant message delivery via WebSocket with < 10ms latency
 - **Group & Private Chats** — Create groups, manage members, or chat one-on-one
@@ -21,31 +21,31 @@ A **hybrid real-time messaging platform** that combines **Django** for business 
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The system uses a **microservices-like hybrid architecture** with three core components:
 
 ```mermaid
 flowchart TB
-    subgraph CLIENT["🖥️ Client (Browser)"]
+    subgraph CLIENT["Client (Browser)"]
         REST["HTTP / REST"]
         WSSOCK["WebSocket"]
     end
 
-    subgraph EDGE["🛡️ nginx :80"]
+    subgraph EDGE["nginx :80"]
         PROXY["rate limiting · security headers"]
     end
 
-    subgraph CONTROL["🐍 Control Plane"]
+    subgraph CONTROL["Control Plane"]
         DJANGO["Django REST API<br/>port 8000 · gunicorn"]
     end
 
-    subgraph DATA["🚀 Data Plane"]
+    subgraph DATA["Data Plane"]
         GO["Go WebSocket Server<br/>port 8001"]
     end
 
-    REDIS[("📮 Redis Pub/Sub<br/>DB 1 · messaging_events")]
-    DB[("🗄️ SQLite / PostgreSQL")]
+    REDIS[("Redis Pub/Sub<br/>DB 1 · messaging_events")]
+    DB[("SQLite / PostgreSQL")]
 
     REST --> PROXY
     WSSOCK --> PROXY
@@ -70,14 +70,14 @@ flowchart TB
 4. Django persists the message and publishes an event to Redis
 5. Go server receives the event and broadcasts to connected clients
 
-> **🔧 Scaling:** for how the WebSocket tier handles many concurrent connections and
+> **Scaling:** for how the WebSocket tier handles many concurrent connections and
 > multi-replica deployments, see [docs/SCALING.md](docs/SCALING.md).
 >
-> **🟩 Embed:** shipping a self-hosted chat inside your own app? Drop in the
+> **Embed:** shipping a self-hosted chat inside your own app? Drop in the
 > zero-dependency widget (`dms-chat.js`) — see [docs/EMBED.md](docs/EMBED.md) and
 > the React SDK in `frontend/widget/react`.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -91,7 +91,7 @@ flowchart TB
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -176,7 +176,7 @@ python start_servers.py list     # List configured servers
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentication
 | Method | Endpoint | Description |
@@ -202,7 +202,7 @@ python start_servers.py list     # List configured servers
 
 ---
 
-## 📨 Real-Time Events
+## Real-Time Events
 
 Events broadcast via the Go WebSocket server:
 
@@ -220,7 +220,7 @@ Events broadcast via the Go WebSocket server:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 distributed-messaging/
@@ -251,7 +251,7 @@ distributed-messaging/
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 Copy `.env.example` to `.env` and configure:
 
@@ -266,7 +266,7 @@ Copy `.env.example` to `.env` and configure:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run Django tests
@@ -281,7 +281,7 @@ cd websocket-server && go test ./...
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Redis Cluster / Sentinel for high availability
 - [ ] Redis Streams for reliable at-least-once delivery
@@ -292,13 +292,13 @@ cd websocket-server && go test ./...
 
 ---
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 👤 Author
+## Author
 
 **Ernest Kyei**
 
