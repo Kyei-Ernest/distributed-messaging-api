@@ -336,10 +336,11 @@ cd frontend/widget && node dms-chat.test.js
 
 | Document | Contents |
 |---|---|
+| [THESIS.md](THESIS.md) | Deep technical thesis: architecture, correctness, delivery semantics, capacity model |
+| [docs/HARDENING_PLAN.md](docs/HARDENING_PLAN.md) | Engineering plans to close the four distributed-systems gaps |
 | [docs/SCALING.md](docs/SCALING.md) | Multi-replica design, presence, sizing rules of thumb |
 | [docs/EMBED.md](docs/EMBED.md) | Embedding the chat widget, config reference, auth model |
 | [BACKEND_DOCUMENTATION.md](BACKEND_DOCUMENTATION.md) | Full backend/API reference |
-| [THESIS.md](THESIS.md) | Architecture deep-dive and design rationale |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 
 ---

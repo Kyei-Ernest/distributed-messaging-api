@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Distributed hardening documentation**
+  - `docs/HARDENING_PLAN.md`: engineering designs to close the four scaling limits from `docs/SCALING.md` — cross-node targeted events (W1), Redis Sentinel HA (W2), durable fan-out via Redis Streams (W3), TTL-based presence with sweeper (W4, also fixes a latent multi-device false-offline bug) — each with rollout strategy, acceptance criteria, effort/risk, and a chaos drill matrix.
+  - `THESIS.md` rewritten as a deep technical thesis: formal system/failure model, delivery-semantics contract (durable-once persistence + at-most-once realtime overlay with client reconciliation), replica-transparency argument, O(nodes) fan-out analysis, capacity model, FMEA, SLO framework.
 - Server-to-server provisioning endpoints authenticated by workspace API key:
   - `POST /api/provision/users/` — create an end-user scoped to the authenticating workspace (`ProvisionUserView`).
   - `POST /api/provision/groups/` — create a workspace group (channel) owned by an existing workspace user, who becomes its admin (`ProvisionGroupView`).
