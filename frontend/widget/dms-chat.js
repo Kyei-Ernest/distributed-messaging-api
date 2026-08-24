@@ -178,7 +178,7 @@
             '.dms-embed__header{padding:10px 14px;font-weight:600;border-bottom:1px solid #d0d7de;' +
             'background:var(--dms-header-bg,#f6f8fa);}' +
             '.dms-embed__list{flex:1;overflow-y:auto;padding:10px 14px;display:flex;' +
-            'flex-direction:column;gap:6px;}' +
+            'flex-direction:column;gap:6px;scrollbar-width:thin;}' +
             '.dms-embed__msg{align-self:flex-start;max-width:80%;padding:8px 11px;' +
             'border-radius:10px;background:var(--dms-msg-bg,#eef1f4);word-wrap:break-word;}' +
             '.dms-embed__msg--own{align-self:flex-end;background:var(--dms-own-bg,#0969da);' +
@@ -186,12 +186,22 @@
             '.dms-embed__meta{font-size:11px;opacity:.7;margin-bottom:2px;}' +
             '.dms-embed__input{display:flex;gap:8px;padding:10px;border-top:1px solid #d0d7de;}' +
             '.dms-embed__input textarea{flex:1;resize:none;border:1px solid #d0d7de;' +
-            'border-radius:8px;padding:8px 10px;font:inherit;}' +
+            'border-radius:8px;padding:8px 10px;font:inherit;background:var(--dms-bg,#fff);' +
+            'color:var(--dms-fg,#1f2328);transition:border-color .12s ease,box-shadow .12s ease;}' +
+            '.dms-embed__input textarea:focus{outline:none;border-color:var(--dms-btn,#0969da);' +
+            'box-shadow:0 0 0 3px color-mix(in srgb,var(--dms-btn,#0969da) 25%,transparent);}' +
             '.dms-embed__input button{border:none;border-radius:8px;padding:0 16px;' +
-            'background:var(--dms-btn,#0969da);color:#fff;font-weight:600;cursor:pointer;}' +
+            'background:var(--dms-btn,#0969da);color:#fff;font-weight:600;cursor:pointer;' +
+            'transition:filter .12s ease,opacity .12s ease;}' +
+            '.dms-embed__input button:hover:not(:disabled){filter:brightness(1.08);}' +
+            '.dms-embed__input button:focus-visible{outline:2px solid var(--dms-btn,#0969da);' +
+            'outline-offset:2px;}' +
+            '.dms-embed__input button:disabled{opacity:.5;cursor:not-allowed;}' +
             '.dms-embed__status{font-size:11px;padding:2px 14px;color:#57606a;}' +
             '.dms-embed--dark{--dms-bg:#161b22;--dms-fg:#e6edf3;--dms-header-bg:#21262d;' +
-            '--dms-msg-bg:#30363d;--dms-btn:#1f6feb;}';
+            '--dms-msg-bg:#30363d;--dms-btn:#1f6feb;}' +
+            '@media (prefers-reduced-motion: reduce){' +
+            '.dms-embed *{transition-duration:.01ms !important;animation-duration:.01ms !important;}}';
         document.head.appendChild(style);
     }
 
@@ -241,6 +251,8 @@
         if (cfg.theme === 'dark') {
             container.classList.add('dms-embed--dark');
         }
+        container.setAttribute('role', 'region');
+        container.setAttribute('aria-label', cfg.title || 'Chat');
 
         var header = document.createElement('div');
         header.className = 'dms-embed__header';
@@ -248,18 +260,27 @@
 
         var status = document.createElement('div');
         status.className = 'dms-embed__status';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
         status.textContent = 'Connecting...';
 
         var list = document.createElement('div');
         list.className = 'dms-embed__list';
+        list.setAttribute('role', 'log');
+        list.setAttribute('aria-live', 'polite');
+        list.setAttribute('aria-label', 'Messages');
 
         var input = document.createElement('div');
         input.className = 'dms-embed__input';
         var textarea = document.createElement('textarea');
         textarea.placeholder = 'Type a message...';
         textarea.rows = 1;
+        textarea.setAttribute('aria-label', 'Type a message');
+        textarea.setAttribute('enterkeyhint', 'send');
         var sendBtn = document.createElement('button');
+        sendBtn.type = 'button';
         sendBtn.textContent = 'Send';
+        sendBtn.setAttribute('aria-label', 'Send message');
 
         input.appendChild(textarea);
         input.appendChild(sendBtn);
@@ -403,6 +424,7 @@
                 payload.recipient_id = cfg.chatId;
             }
             elements.textarea.value = '';
+            syncSendButton();
             fetchJson(cfg.apiBase + '/messages/', {
                 method: 'POST',
                 headers: authHeaders(state.token),
@@ -419,11 +441,22 @@
             });
         }
 
+        /** Enable Send only when there is something to send. */
+        function syncSendButton() {
+            elements.sendBtn.disabled = elements.textarea.value.trim().length === 0;
+        }
+
         elements.sendBtn.addEventListener('click', send);
+        elements.textarea.addEventListener('input', syncSendButton);
+        syncSendButton();
+
+        // Enter sends; Shift+Enter inserts a newline; Escape dismisses the keyboard.
         elements.textarea.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 send();
+            } else if (e.key === 'Escape') {
+                elements.textarea.blur();
             }
         });
 
@@ -464,7 +497,7 @@
     }
 
     return {
-        version: '1.0.0',
+        version: '2.0.0',
         DEFAULTS: DEFAULTS,
         normalizeConfig: normalizeConfig,
         authHeaders: authHeaders,

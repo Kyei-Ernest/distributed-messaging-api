@@ -2800,3 +2800,191 @@ textarea.form-control::placeholder {
     font-size: 0.75rem;
     color: var(--text-tertiary);
 }
+
+/* ============================================================================
+   DESIGN SYSTEM v2 - tokens, a11y, motion, polish
+   Appended last so it refines (never breaks) the base system above.
+   ========================================================================== */
+
+/* --- Auto theme: honor OS preference until user picks explicitly ---------- */
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        --bg-void: #09090b;
+        --bg-surface: #121217;
+        --bg-panel: #1c1c24;
+        --bg-hover: #2a2a35;
+        --border-subtle: #272730;
+        --border-focus: #4a4a55;
+        --border-light: #333340;
+        --accent-primary: #3b82f6;
+        --accent-hover: #2563eb;
+        --accent-glow: rgba(59, 130, 246, 0.5);
+        --text-primary: #ededef;
+        --text-secondary: #a1a1aa;
+        --text-muted: #71717a;
+        --text-tertiary: #52525b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+        --chat-received-bg: var(--bg-panel);
+    }
+}
+
+/* --- Extended tokens ------------------------------------------------------ */
+:root,
+[data-theme="light"],
+[data-theme="dark"] {
+    /* Spacing scale (4px baseline grid) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    /* Radii & elevation */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 999px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+
+    /* Focus ring */
+    --focus-ring: 0 0 0 2px var(--bg-void), 0 0 0 4px var(--accent-primary);
+}
+
+/* --- Accessibility: visible focus, never removed --------------------------- */
+:focus-visible {
+    outline: none !important;
+    box-shadow: var(--focus-ring) !important;
+    border-radius: var(--radius-sm);
+}
+
+.skip-link {
+    position: fixed;
+    top: -100%;
+    left: var(--space-4);
+    z-index: 10000;
+    padding: var(--space-2) var(--space-4);
+    background: var(--accent-primary);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: top var(--dur-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+    top: var(--space-2);
+}
+
+/* --- Buttons & inputs: consistent affordances ------------------------------ */
+.btn {
+    transition: background-color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.btn:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+
+.btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    transition: background-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+}
+
+.search-input,
+textarea,
+select,
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    transition: border-color var(--dur-fast) var(--ease-out),
+                box-shadow var(--dur-fast) var(--ease-out),
+                background-color var(--dur-fast) var(--ease-out);
+}
+
+/* --- Modals & overlays: smoother entrances ---------------------------------- */
+.modal-content {
+    animation: modal-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes modal-in {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- Skeleton shimmer for loading states ------------------------------------ */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-hover);
+    border-radius: var(--radius-sm);
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--text-primary) 8%, transparent),
+        transparent
+    );
+    animation: skeleton-shimmer 1.4s infinite;
+}
+
+@keyframes skeleton-shimmer {
+    100% { transform: translateX(100%); }
+}
+
+/* --- Refined scrollbars ------------------------------------------------------ */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-focus);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* --- Reduced motion: respect the OS setting ---------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

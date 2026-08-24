@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Frontend overhaul (modern vanilla, no build step)**
+  - Reactive core (`js/core/store.js`): signals, rAF-batched effects, computed values, localStorage-persisted slices, and a global `AppStore` state tree (ui/connection/presence/unread/typing).
+  - DOM kit (`js/core/dom.js`): `h()` hyperscript builder, `renderList` keyed list reconciliation (no more wholesale `innerHTML` rebuilds), focus-trap helper for modals.
+  - Accessibility: skip-link, ARIA tablist/tab/tabpanel on sidebar tabs, `role="log"` + `aria-live` message log, dialog semantics (`aria-modal`, labelled titles) on all four modals, live-region toasts/status pills, visible `:focus-visible` rings, full `prefers-reduced-motion` support.
+  - Theming: new `auto` theme honoring OS preference with FOUC-free inline resolution, `<meta theme-color>` synced per scheme, sun/moon icon sync across desktop and mobile menus.
+  - PWA: service worker (`sw.js`) — cache-first shell, network-first API with offline fallback, versioned cache busting; hardened manifest (id/scope/categories/maskable icon); removed anti-user viewport restrictions (`maximum-scale`/`user-scalable=no`).
+  - Connection status pill now auto-hides once connected; store-backed connection state.
+- **Widget v2** (`frontend/widget/dms-chat.js`): ARIA region/log/live-status semantics, labelled inputs, Enter-to-send (Shift+Enter newline, Escape blur), disabled-until-valid send button, dark-theme-aware input styling, reduced-motion support; zero-dependency contract and public API unchanged.
 - **Distributed hardening documentation**
   - `docs/HARDENING_PLAN.md`: engineering designs to close the four scaling limits from `docs/SCALING.md` — cross-node targeted events (W1), Redis Sentinel HA (W2), durable fan-out via Redis Streams (W3), TTL-based presence with sweeper (W4, also fixes a latent multi-device false-offline bug) — each with rollout strategy, acceptance criteria, effort/risk, and a chaos drill matrix.
   - `THESIS.md` rewritten as a deep technical thesis: formal system/failure model, delivery-semantics contract (durable-once persistence + at-most-once realtime overlay with client reconciliation), replica-transparency argument, O(nodes) fan-out analysis, capacity model, FMEA, SLO framework.

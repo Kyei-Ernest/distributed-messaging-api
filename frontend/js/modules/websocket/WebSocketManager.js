@@ -43,6 +43,7 @@ class WebSocketManager {
 
     handleConnected() {
         console.log('✅ WebSocket connected');
+        if (window.AppStore) AppStore.set('connection', 'status', 'connected');
         this.app.updateStatusIndicator?.('Connected', 'online');
 
         // Subscribe to all groups
@@ -64,6 +65,7 @@ class WebSocketManager {
 
     handleDisconnected() {
         console.log('❌ WebSocket disconnected');
+        if (window.AppStore) AppStore.set('connection', 'status', 'disconnected');
         this.app.updateStatusIndicator?.('Disconnected', 'offline');
 
         if (this.onlineStatusPollInterval) {
@@ -73,6 +75,7 @@ class WebSocketManager {
 
     handleError(error) {
         console.error('WebSocket error:', error);
+        if (window.AppStore) AppStore.set('connection', 'status', 'disconnected');
         this.app.updateStatusIndicator?.('Connection error', 'offline');
     }
 

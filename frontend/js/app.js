@@ -496,12 +496,21 @@ class MessagingApp {
     }
 
     updateStatusIndicator(message, status) {
+        // Store is the source of truth; the render effect below touches the DOM.
+        if (window.AppStore) {
+            AppStore.set('connection', 'status', status === 'online' ? 'connected' : 'disconnected');
+        }
         const indicator = document.getElementById('connection-status');
         if (indicator) {
             const msgEl = indicator.querySelector('.connection-message');
             if (msgEl) msgEl.textContent = message;
             indicator.className = `connection-status ${status}`;
             indicator.classList.remove('hidden');
+            // Auto-hide the pill once connected; show it again on any drop.
+            clearTimeout(this._statusHideTimeout);
+            if (status === 'online') {
+                this._statusHideTimeout = setTimeout(() => indicator.classList.add('hidden'), 2500);
+            }
         }
     }
 

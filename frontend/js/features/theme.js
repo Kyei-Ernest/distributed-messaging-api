@@ -4,10 +4,15 @@
  * ============================================================================
  */
 
-// Theme Manager
+// Theme Manager — light | dark | auto (follows OS, FOUC-safe via inline head script)
 class ThemeManager {
     constructor() {
-        this.theme = localStorage.getItem('theme') || 'light';
+        this.theme = localStorage.getItem('theme');
+        if (!this.theme || this.theme === 'null') this.theme = 'auto';
+        this.media = window.matchMedia('(prefers-color-scheme: dark)');
+        this.media.addEventListener('change', () => {
+            if (this.theme === 'auto') this.applyTheme('auto');
+        });
         this.init();
     }
 
@@ -15,29 +20,41 @@ class ThemeManager {
         this.applyTheme(this.theme);
         document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggle());
         document.getElementById('theme-select')?.addEventListener('change', (e) => this.setTheme(e.target.value));
+        const select = document.getElementById('theme-select');
+        if (select) select.value = this.theme;
+        // Publish to the reactive store so any UI can react without polling.
+        if (window.AppStore) AppStore.set('ui', 'theme', this.theme);
     }
 
     toggle() {
-        this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+        const current = this.resolve();
+        this.setTheme(current === 'light' ? 'dark' : 'light');
     }
 
     setTheme(theme) {
         this.theme = theme;
-        this.applyTheme(theme);
         localStorage.setItem('theme', theme);
+        this.applyTheme(theme);
+        const select = document.getElementById('theme-select');
+        if (select) select.value = theme;
+        if (window.AppStore) AppStore.set('ui', 'theme', theme);
+    }
+
+    /** Resolve 'auto' against the OS preference. */
+    resolve() {
+        return this.theme === 'auto'
+            ? (this.media.matches ? 'dark' : 'light')
+            : this.theme;
     }
 
     applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        const sunIcon = document.querySelector('.sun-icon');
-        const moonIcon = document.querySelector('.moon-icon');
-        if (theme === 'dark') {
-            sunIcon?.classList.add('hidden');
-            moonIcon?.classList.remove('hidden');
-        } else {
-            sunIcon?.classList.remove('hidden');
-            moonIcon?.classList.add('hidden');
-        }
+        document.documentElement.setAttribute('data-theme', this.resolve());
+        // Sync <meta name="theme-color"> with the resolved scheme.
+        document.querySelector('meta[name="theme-color"]:not([media])')
+            ?.setAttribute('content', this.resolve() === 'dark' ? '#09090b' : '#f0f2f5');
+        const dark = this.resolve() === 'dark';
+        document.querySelectorAll('.sun-icon').forEach(el => el.classList.toggle('hidden', dark));
+        document.querySelectorAll('.moon-icon').forEach(el => el.classList.toggle('hidden', !dark));
     }
 }
 

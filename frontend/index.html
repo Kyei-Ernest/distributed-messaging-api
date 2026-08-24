@@ -4,25 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="description"
+        content="Distributed Messaging System - hybrid real-time chat with groups, private messages, and an embeddable widget.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f0f2f5" media="(prefers-color-scheme: light)">
+    <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Distributed Messaging - Real-time Chat</title>
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Resolve 'auto' theme before first paint to avoid a flash of the wrong scheme.
+        (function () {
+            var saved = localStorage.getItem('theme');
+            if (!saved || saved === 'null') saved = 'auto';
+            var resolved = saved;
+            if (saved === 'auto') {
+                resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', resolved);
+        })();
+    </script>
 </head>
 
 <body>
+    <!-- Accessibility: skip repeated navigation -->
+    <a class="skip-link" href="#messages-list">Skip to conversation</a>
+
     <!-- Upload Progress Bar -->
-    <div id="upload-progress" class="upload-progress">
+    <div id="upload-progress" class="upload-progress" role="progressbar" aria-label="Upload progress" aria-hidden="true">
         <div id="upload-progress-bar" class="upload-progress-bar"></div>
     </div>
 
     <!-- Offline Banner -->
-    <div id="offline-banner" class="offline-banner">
+    <div id="offline-banner" class="offline-banner" role="status">
         You are offline. Messages will be queued and sent when connection is restored.
     </div>
 
@@ -231,17 +250,19 @@
                     </div>
                 </div>
 
-                <div class="sidebar-tabs">
-                    <button class="tab-btn active" data-tab="chats">
+                <div class="sidebar-tabs" role="tablist" aria-label="Conversation categories">
+                    <button class="tab-btn active" data-tab="chats" role="tab" id="tab-chats"
+                        aria-selected="true" aria-controls="chats-tab">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
+                            stroke-width="2" aria-hidden="true">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                         </svg>
                         Chats
                     </button>
-                    <button class="tab-btn" data-tab="groups">
+                    <button class="tab-btn" data-tab="groups" role="tab" id="tab-groups"
+                        aria-selected="false" aria-controls="groups-tab">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
+                            stroke-width="2" aria-hidden="true">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -249,9 +270,10 @@
                         </svg>
                         Groups
                     </button>
-                    <button class="tab-btn" data-tab="users">
+                    <button class="tab-btn" data-tab="users" role="tab" id="tab-users"
+                        aria-selected="false" aria-controls="users-tab">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
+                            stroke-width="2" aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
@@ -261,31 +283,34 @@
 
                 <div class="sidebar-content">
                     <!-- Chats Tab (Combined) -->
-                    <div id="chats-tab" class="tab-content active">
+                    <div id="chats-tab" class="tab-content active" role="tabpanel" aria-labelledby="tab-chats">
                         <div class="search-container">
-                            <input type="text" id="chat-search" placeholder="Search chats..." class="search-input">
+                            <input type="text" id="chat-search" placeholder="Search chats..." class="search-input"
+                                aria-label="Search chats">
                         </div>
-                        <div id="chats-list" class="list-container">
+                        <div id="chats-list" class="list-container" role="list">
                             <div class="loading">Loading chats...</div>
                         </div>
                     </div>
 
                     <!-- Groups Tab -->
-                    <div id="groups-tab" class="tab-content">
+                    <div id="groups-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-groups">
                         <div class="search-container">
-                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input">
+                            <input type="text" id="group-search" placeholder="Search groups..." class="search-input"
+                                aria-label="Search groups">
                         </div>
-                        <div id="groups-list" class="list-container">
+                        <div id="groups-list" class="list-container" role="list">
                             <div class="loading">Loading groups...</div>
                         </div>
                     </div>
 
                     <!-- Users Tab -->
-                    <div id="users-tab" class="tab-content">
+                    <div id="users-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-users">
                         <div class="search-container">
-                            <input type="text" id="user-search" placeholder="Search users..." class="search-input">
+                            <input type="text" id="user-search" placeholder="Search users..." class="search-input"
+                                aria-label="Search users">
                         </div>
-                        <div id="users-list" class="list-container">
+                        <div id="users-list" class="list-container" role="list">
                             <div class="loading">Loading users...</div>
                         </div>
                     </div>
@@ -412,14 +437,16 @@
                         <div class="spinner"></div>
                         <span style="margin-left: 8px;">...</span>
                     </div>
-                    <div id="messages-list" class="messages-list">
+                    <div id="messages-list" class="messages-list" role="log" aria-live="polite"
+                        aria-label="Conversation messages">
                         <!-- Messages will be inserted here dynamically -->
                         <!-- Received messages (from others) will have class "message" (left side) -->
                         <!-- Sent messages (from current user) will have class "message own" (right side) -->
                     </div>
 
                     <!-- Typing Indicator (Inside messages-container, after messages) -->
-                    <div id="typing-indicator" class="typing-indicator hidden">
+                    <div id="typing-indicator" class="typing-indicator hidden" role="status"
+                        aria-label="Someone is typing">
                         <div class="avatar avatar-sm">
                             <span>U</span>
                         </div>
@@ -587,11 +614,12 @@
 
 
     <!-- Create Group Modal -->
-    <div id="create-group-modal" class="modal">
+    <div id="create-group-modal" class="modal" role="dialog" aria-modal="true"
+         aria-labelledby="create-group-title">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Create New Group</h3>
+                <h3 id="create-group-title">Create New Group</h3>
                 <button class="btn-icon close-modal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -618,11 +646,12 @@
     </div>
 
     <!-- User Info Modal -->
-    <div id="user-info-modal" class="modal">
+    <div id="user-info-modal" class="modal" role="dialog" aria-modal="true"
+         aria-labelledby="user-info-title">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>User Profile</h3>
+                <h3 id="user-info-title">User Profile</h3>
                 <button class="btn-icon close-modal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -668,11 +697,12 @@
     </div>
 
     <!-- Forward Message Modal -->
-    <div id="forward-modal" class="modal">
+    <div id="forward-modal" class="modal" role="dialog" aria-modal="true"
+         aria-labelledby="forward-title">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Forward Message</h3>
+                <h3 id="forward-title">Forward Message</h3>
                 <button class="btn-icon close-modal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -715,10 +745,10 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="toast-container"></div>
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 
     <!-- Connection Status -->
-    <div id="connection-status" class="connection-status hidden">
+    <div id="connection-status" class="connection-status hidden" role="status">
         <span class="connection-dot"></span>
         <span class="connection-message">Connecting...</span>
     </div>
@@ -766,11 +796,12 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
+    <div id="settings-modal" class="modal" role="dialog" aria-modal="true"
+         aria-labelledby="settings-title">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Settings</h3>
+                <h3 id="settings-title">Settings</h3>
                 <button class="btn-icon close-modal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -904,6 +935,8 @@
 
     <!-- Modular Architecture -->
     <script src="js/core/EventBus.js"></script>
+    <script src="js/core/store.js"></script>
+    <script src="js/core/dom.js"></script>
     <script src="js/modules/auth/AuthManager.js"></script>
     <script src="js/modules/navigation/NavigationManager.js"></script>
     <script src="js/modules/chat/ChatManager.js"></script>
@@ -914,6 +947,17 @@
 
     <!-- Main Application -->
     <script src="js/app.js"></script>
+
+    <!-- Progressive Web App -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('sw.js').catch(function (err) {
+                    console.warn('Service worker registration failed:', err);
+                });
+            });
+        }
+    </script>
 </body>
 
 </html>
