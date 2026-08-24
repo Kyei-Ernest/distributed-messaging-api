@@ -25,30 +25,35 @@ A **hybrid real-time messaging platform** that combines **Django** for business 
 
 The system uses a **microservices-like hybrid architecture** with three core components:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     Client (Browser)                    │
-│                                                         │
-│            HTTP/REST ──┐          ┌── WebSocket          │
-└────────────────────────┼──────────┼─────────────────────┘
-                         │          │
-                         ▼          ▼
-                ┌────────────┐  ┌────────────────┐
-                │  Django    │  │ Go WebSocket   │
-                │  REST API  │  │ Server         │
-                │  (Port     │  │ (Port 8001)    │
-                │   8000)    │  │                │
-                └─────┬──────┘  └───────┬────────┘
-                      │                 │
-                      │   ┌─────────┐   │
-                      └──►│  Redis  │◄──┘
-                          │ Pub/Sub │
-                          └────┬────┘
-                               │
-                          ┌────▼────┐
-                          │ SQLite/ │
-                          │ Postgres│
-                          └─────────┘
+```mermaid
+flowchart TB
+    subgraph CLIENT["🖥️ Client (Browser)"]
+        REST["HTTP / REST"]
+        WSSOCK["WebSocket"]
+    end
+
+    subgraph EDGE["🛡️ nginx :80"]
+        PROXY["rate limiting · security headers"]
+    end
+
+    subgraph CONTROL["🐍 Control Plane"]
+        DJANGO["Django REST API<br/>port 8000 · gunicorn"]
+    end
+
+    subgraph DATA["🚀 Data Plane"]
+        GO["Go WebSocket Server<br/>port 8001"]
+    end
+
+    REDIS[("📮 Redis Pub/Sub<br/>DB 1 · messaging_events")]
+    DB[("🗄️ SQLite / PostgreSQL")]
+
+    REST --> PROXY
+    WSSOCK --> PROXY
+    PROXY --> DJANGO
+    PROXY -- "/ws upgrade" --> GO
+    DJANGO -- "publishes events" --> REDIS
+    REDIS -- "subscribes (every node)" --> GO
+    DJANGO --- DB
 ```
 
 | Component | Role |
